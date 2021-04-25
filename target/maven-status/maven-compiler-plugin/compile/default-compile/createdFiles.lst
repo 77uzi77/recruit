@@ -1,0 +1,6 @@
+com\yidong\recruit\entity\Sign.class
+com\yidong\recruit\mapper\UserMapper.class
+com\yidong\recruit\service\impl\UserServiceImpl.class
+com\yidong\recruit\entity\Sign$SignBuilder.class
+com\yidong\recruit\service\UserService.class
+com\yidong\recruit\filter\AllowOriginFilter.class
