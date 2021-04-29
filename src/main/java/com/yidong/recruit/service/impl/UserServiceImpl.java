@@ -52,7 +52,8 @@ public class UserServiceImpl implements UserService {
             // 已报名则返回提示：您已报名，确定重复报名？
             return true;
         }else{
-            // 未报名则新增: 调用上面addOne接口
+
+            // 未报名则新增: 调用addOne接口
             return false;
         }
     }
