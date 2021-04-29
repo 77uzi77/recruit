@@ -109,6 +109,8 @@ public class UserController {
      * @date 2021/4/29
      *  查找是否重复报名
      */
+    @PostMapping("ifHadSigned")
+    @ApiOperation("查看是否重复报名")
     public ResultBean<String> ifHadSigned(@RequestBody Sign sign){
         boolean ifHadSigned = userService.ifHadSigned(sign);
         if(ifHadSigned){
@@ -117,5 +119,4 @@ public class UserController {
             return new ResultBean<>(ResultBean.SUCCESS_CODE,"确定报名？");
         }
     }
-
 }
