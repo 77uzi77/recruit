@@ -101,4 +101,21 @@ public class UserController {
         userService.addOne(sign);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
     }
+
+    /**
+     * @param sign
+     * @return ResultBean<String>
+     * @author ly
+     * @date 2021/4/29
+     *  查找是否重复报名
+     */
+    public ResultBean<String> ifHadSigned(@RequestBody Sign sign){
+        boolean ifHadSigned = userService.ifHadSigned(sign);
+        if(ifHadSigned){
+            return new ResultBean<>(ResultBean.SUCCESS_CODE,"您已报名，确定重复报名？");
+        }else {
+            return new ResultBean<>(ResultBean.SUCCESS_CODE,"确定报名？");
+        }
+    }
+
 }

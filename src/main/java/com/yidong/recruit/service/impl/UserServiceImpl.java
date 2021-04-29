@@ -40,4 +40,22 @@ public class UserServiceImpl implements UserService {
             userMapper.insertSelective(one);
         }
     }
+
+    @Override
+    public boolean ifHadSigned(Sign sign) {
+        // 通过 openId 判断用户 是否 报名过
+        Sign checksign = new Sign();
+        checksign.setOpenid(checksign.getOpenid());
+        Sign returnSign = new Sign();
+        returnSign = userMapper.selectOne(checksign);
+        if (returnSign != null){
+            // 已报名则返回提示：您已报名，确定重复报名？
+            return true;
+        }else{
+            // 未报名则新增: 调用上面addOne接口
+            return false;
+        }
+    }
+
+
 }

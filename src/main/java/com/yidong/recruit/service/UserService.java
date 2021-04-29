@@ -11,4 +11,6 @@ import com.yidong.recruit.entity.Sign;
 public interface UserService {
 
     void addOne(Sign sign);
+
+    boolean ifHadSigned(Sign sign);
 }
