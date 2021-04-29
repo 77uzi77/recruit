@@ -101,4 +101,21 @@ public class UserServiceImpl implements UserService {
         userMapper.updateByExampleSelective(one,example);
     }
 
+    @Override
+    public String ifHadSigned(String openid) {
+        // 通过 openId 判断用户 是否 报名过
+        Sign checkSign = new Sign();
+        checkSign.setOpenid(openid);
+        String result;
+
+        if (userMapper.selectOne(checkSign) != null){
+            // 已报名则返回提示：您已报名，确定重复报名？
+            result = "您已报名，确定重复报名？";
+        }else{
+            result = "是否确定报名？";
+            // 未报名则新增: 调用addOne接口
+        }
+        return result;
+    }
+
 }

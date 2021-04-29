@@ -19,4 +19,7 @@ public interface UserService {
     Sign getOne(String openid);
 
     void updateStatus(String openid,String status);
+
+    String ifHadSigned(String openid);
+
 }
