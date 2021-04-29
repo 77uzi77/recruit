@@ -6,6 +6,17 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost/recruit?characterEncoding=utf8&serverTimezone=GMT
+    url: jdbc:mysql://8.131.59.21/recruit?characterEncoding=utf8&serverTimezone=GMT
     username: root
     password: root
+
+  rabbitmq:
+    host: 8.131.59.21
+    port: 5672
+    username: root
+    password: root
+    listener:
+      direct:
+        prefetch: 1
+#    publisher-confirm-type: correlated
+#    publisher-returns: true

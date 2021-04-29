@@ -11,4 +11,12 @@ import com.yidong.recruit.entity.Sign;
 public interface UserService {
 
     void addOne(Sign sign);
+
+    String getStatus(String openid);
+
+    String wait(String openid);
+
+    Sign getOne(String openid);
+
+    void updateStatus(String openid,String status);
 }

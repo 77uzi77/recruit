@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-@Slf4j
+//@Slf4j
 @RestControllerAdvice
 public class ExceptionHandleController implements HandlerExceptionResolver {
 

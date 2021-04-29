@@ -1,6 +1,11 @@
+com\yidong\recruit\util\TimeUtil.class
 com\yidong\recruit\entity\Sign.class
 com\yidong\recruit\mapper\UserMapper.class
+com\yidong\recruit\listener\RabbitConsumer.class
 com\yidong\recruit\service\impl\UserServiceImpl.class
 com\yidong\recruit\entity\Sign$SignBuilder.class
+com\yidong\recruit\controller\AdminController.class
+com\yidong\recruit\listener\MessageListenerConfig.class
+com\yidong\recruit\conf\RabbitConfig.class
 com\yidong\recruit\service\UserService.class
 com\yidong\recruit\filter\AllowOriginFilter.class

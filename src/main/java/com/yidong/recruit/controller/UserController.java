@@ -4,6 +4,7 @@ import com.yidong.recruit.entity.ResultBean;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.exception.MyException;
 import com.yidong.recruit.service.UserService;
+import com.yidong.recruit.util.TimeUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.http.HttpEntity;
@@ -16,8 +17,12 @@ import org.apache.http.util.EntityUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -40,7 +45,7 @@ public class UserController {
     private static final String CONNECT_REDIRECT = "1";
 
     @GetMapping("getUserInfo/{code}")
-    @ApiOperation("得到用户信息(openId)")
+    @ApiOperation("登录")
     public ResultBean<String> getUserInfo(@PathVariable String code) {
         String url = BASE_Url + "?appid=" + APP_ID + "&secret=" + APP_SECRET + "&js_code=" + code + "&grant_type=" + GRANT_TYPE;
 
@@ -100,5 +105,21 @@ public class UserController {
     public ResultBean<String> sign(@RequestBody Sign sign){
         userService.addOne(sign);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
+    }
+
+
+    @GetMapping("getStatus/{openid}")
+    @ApiOperation("得到用户状态")
+    public ResultBean<String> getStatus(@PathVariable String openid){
+        String status = userService.getStatus(openid);
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,status);
+    }
+
+    @GetMapping("wait/{openid}")
+    @ApiOperation("用户排队面试")
+    public ResultBean<String> wait(@PathVariable String openid){
+        String message = userService.wait(openid);
+
+        return  new ResultBean<>(ResultBean.SUCCESS_CODE,message);
     }
 }
