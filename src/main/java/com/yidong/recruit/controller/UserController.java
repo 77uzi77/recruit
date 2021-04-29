@@ -39,8 +39,8 @@ public class UserController {
     private UserService userService;
 
     private static final String BASE_Url = "https://api.weixin.qq.com/sns/jscode2session";
-    private static final String APP_ID = "wx1187ba103905bc69";
-    private static final String APP_SECRET = "8e6fd6ccff3348ea364acf3ec941d750";
+    private static final String APP_ID = "wx77bdfd88a7951579";
+    private static final String APP_SECRET = "b011b325a41dc892205b5a231da6f0b3";
     private static final String GRANT_TYPE = "authorization_code";
     private static final String CONNECT_REDIRECT = "1";
 
