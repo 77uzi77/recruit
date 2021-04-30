@@ -1,8 +1,8 @@
 package com.yidong.recruit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,11 +25,14 @@ public class Sign {
 
     @Id
     @KeySql(useGeneratedKeys = true)
-    @ApiModelProperty("id")
+    @ApiModelProperty(value = "id",hidden = true)
     private Integer id;
 
     @ApiModelProperty("用户标识id")
     private String openid;
+
+    @ApiModelProperty("性别")
+    private String sex;
 
     @ApiModelProperty("学号")
     private String sno;
@@ -55,6 +58,6 @@ public class Sign {
     @ApiModelProperty("自我介绍")
     private String introduce;
 
-    @ApiModelProperty("状态")
+    @ApiModelProperty(value = "状态",hidden = true)
     private String status;
 }

@@ -1,5 +1,6 @@
 package com.yidong.recruit.conf;
 
+import com.google.common.base.Predicates;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -30,7 +31,10 @@ public class SwaggerConfig {
                 // RequestHandlerSelectors.any() 所有都暴露
                 // RequestHandlerSelectors.basePackage("com.info.*")  指定包位置
                 .apis(RequestHandlerSelectors.any())
-                .paths(PathSelectors.any())
+                //不显示错误的接口地址
+                .paths(Predicates.not(PathSelectors.regex("/error.*")))//错误路径不监控
+                .paths(PathSelectors.regex("/.*"))// 对根下所有路径进行监控
+//                .paths(PathSelectors.any())
                 .build();
     }
 
