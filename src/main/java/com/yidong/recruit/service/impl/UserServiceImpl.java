@@ -1,19 +1,17 @@
 package com.yidong.recruit.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.mapper.UserMapper;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.RedisUtil;
 import com.yidong.recruit.util.TimeUtil;
-import io.swagger.models.auth.In;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
-import javax.naming.ldap.Rdn;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +96,24 @@ public class UserServiceImpl implements UserService {
         one.setOpenid(openid);
         // 通过openid判断是否已报名
         Sign res = userMapper.selectOne(one);
-        if (res != null){
+
+        if (res != null) {
+
+            // 保存 用户 排队 队列
+            String waitQueue = (String) redisUtil.get("waitQueue");
+            String user = JSON.toJSONString(res);
+            if(waitQueue != null) {
+                redisUtil.set("waitQueue",waitQueue + "$" + user);
+            }else{
+                redisUtil.set("waitQueue",user);
+            }
+
+
+            // 将该用户的信息 加入 消息队列
+            Map<String,String> data = new HashMap<>();
+            data.put("openid",openid);
+            data.put("time", TimeUtil.getCurrentTime());
+            data.put("direction",res.getDirection());
 
             // 判断排队用户的方向 是后台还是前端
             if("后台".equals(res.getDirection())) {
@@ -111,6 +126,10 @@ public class UserServiceImpl implements UserService {
                     redisUtil.set(openid,0);
                     redisUtil.set("backstageCount",1);
                 }
+
+                // 分发到 后台等待队列
+                rabbitTemplate.convertAndSend("waitExchange","backstageRouting",data);
+
             }else {
                 // 通过 foreCount 更新 用户 需要等待的人数
                 Integer backstageCount = (Integer) redisUtil.get("foreCount");
@@ -121,13 +140,11 @@ public class UserServiceImpl implements UserService {
                     redisUtil.set(openid,0);
                     redisUtil.set("foreCount",1);
                 }
+
+                // 分发到 前端等待队列
+                rabbitTemplate.convertAndSend("waitExchange","foreRouting",data);
             }
 
-            Map<String,String> data = new HashMap<>();
-            data.put("openid",openid);
-            data.put("time", TimeUtil.getCurrentTime());
-            data.put("direction",res.getDirection());
-            rabbitTemplate.convertAndSend("waitExchange","waitRouting",data);
             message = "排队成功！";
         }else{
             message = "排队失败！";
@@ -135,6 +152,13 @@ public class UserServiceImpl implements UserService {
         return message;
     }
 
+    /***
+     * @param openid
+     * @return Sign
+     * @author lzc
+     * @date 2021/5/6
+     *  通过openid查询用户
+     */
     @Override
     public Sign getOne(String openid) {
         Sign one = new Sign();
@@ -142,10 +166,20 @@ public class UserServiceImpl implements UserService {
         return userMapper.selectOne(one);
     }
 
+    /***
+     * @param openid
+     * @param status
+     * @return void
+     * @author lzc
+     * @date 2021/5/6
+     *  更新用户状态
+     */
     @Override
     public void updateStatus(String openid,String status) {
         Sign one = new Sign();
         one.setStatus(status);
+        one.setOpenid(openid);
+//        System.out.println(one.getOpenid());
         Example example = new Example(Sign.class);
         example.createCriteria().andEqualTo("openid",openid);
         userMapper.updateByExampleSelective(one,example);
@@ -182,6 +216,43 @@ public class UserServiceImpl implements UserService {
         //根据构建的条件查询数据
         return userMapper.selectByExample(example);
     }
+
+    /**
+     * @param
+     * @return String
+     * @author lzc
+     * @date 2021/5/6
+     *  得到等待队列
+     */
+    @Override
+    public String getWaitQueue() {
+        return (String) redisUtil.get("waitQueue");
+    }
+
+    /**
+     * @param
+     * @return String
+     * @author lzc
+     * @date 2021/5/6
+     *  得到前端队列的第一个用户
+     */
+    @Override
+    public String getFirstForeUser() {
+        return (String) redisUtil.get("firstForeUser");
+    }
+
+    /**
+     * @param
+     * @return String
+     * @author lzc
+     * @date 2021/5/6
+     *  得到后台队列的第一个用户
+     */
+    @Override
+    public String getFirstBackstageUser() {
+        return (String) redisUtil.get("firstBackstageUser");
+    }
+
 
     /**
      * @param sign
