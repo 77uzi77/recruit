@@ -18,8 +18,13 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitConfig {
 
     @Bean
-    public Queue waitQueue(){
-        return new Queue("waitQueue",true);
+    public Queue foreQueue(){
+        return new Queue("foreQueue",true);
+    }
+
+    @Bean
+    public Queue backstageQueue() {
+        return new Queue("backstageQueue",true);
     }
 
     @Bean
@@ -28,8 +33,13 @@ public class RabbitConfig {
     }
 
     @Bean
-    Binding bindingWaitQueue(){
-        return BindingBuilder.bind(waitQueue()).to(waitExchange()).with("waitRouting");
+    Binding bindingForeQueue(){
+        return BindingBuilder.bind(foreQueue()).to(waitExchange()).with("foreRouting");
+    }
+
+    @Bean
+    Binding bindingBackstageQueue() {
+        return BindingBuilder.bind(backstageQueue()).to(waitExchange()).with("backstageRouting");
     }
 
 
