@@ -7,6 +7,7 @@ import com.yidong.recruit.mapper.UserMapper;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.RedisUtil;
 import com.yidong.recruit.util.TimeUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.Map;
  * discription
  */
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     @Autowired
@@ -122,7 +124,7 @@ public class UserServiceImpl implements UserService {
                 String backstageQueue = (String) redisUtil.get("backstageQueue");
                 String user = JSON.toJSONString(res);
                 if(backstageQueue != null) {
-                    redisUtil.set("backstageQueue",backstageQueue + "$" + user);
+                    redisUtil.set("backstageQueue",backstageQueue + ";" + user);
                 }else{
                     redisUtil.set("backstageQueue",user);
                 }
@@ -145,7 +147,7 @@ public class UserServiceImpl implements UserService {
                 String foreQueue = (String) redisUtil.get("foreQueue");
                 String user = JSON.toJSONString(res);
                 if(foreQueue != null) {
-                    redisUtil.set("foreQueue",foreQueue + "$" + user);
+                    redisUtil.set("foreQueue",foreQueue + ";" + user);
                 }else{
                     redisUtil.set("foreQueue",user);
                 }
@@ -243,10 +245,10 @@ public class UserServiceImpl implements UserService {
         }
 
         if (waitQueue != null){
-            return waitQueue.split("\\$");
+            return waitQueue.split(";");
         }
 
-        return new String[]{"队列为空"};
+        return null;
     }
 
     /**
@@ -277,8 +279,10 @@ public class UserServiceImpl implements UserService {
     public String getNext(String direction) {
         if ("fore".equals(direction) || "前端".equals(direction)) {
             MessageConsumer.isForeFinish = true;
+            log.info("前端用户面试结束... 开始下一个");
         } else {
             MessageConsumer.isBackstageFinish = true;
+            log.info("后台用户面试结束... 开始下一个");
         }
         return "处理成功！";
     }

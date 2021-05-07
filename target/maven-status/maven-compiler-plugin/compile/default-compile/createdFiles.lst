@@ -1,5 +1,6 @@
 com\yidong\recruit\entity\ResultBean$ResultBeanBuilder.class
 com\yidong\recruit\util\TimeUtil.class
+com\yidong\recruit\conf\RedisConfig.class
 com\yidong\recruit\exception\MyExceptionCode.class
 com\yidong\recruit\entity\Sign.class
 com\yidong\recruit\exception\MyException.class
@@ -10,9 +11,12 @@ com\yidong\recruit\entity\Sign$SignBuilder.class
 com\yidong\recruit\controller\AdminController.class
 com\yidong\recruit\controller\UserController.class
 com\yidong\recruit\exception\MyExceptionCodeEnum.class
+com\yidong\recruit\conf\RedisConfig$1.class
+com\yidong\recruit\util\RedisUtil.class
 com\yidong\recruit\conf\RabbitConfig.class
 com\yidong\recruit\controller\handle\ExceptionHandleController.class
 com\yidong\recruit\RecruitApplication.class
 com\yidong\recruit\service\UserService.class
 com\yidong\recruit\filter\AllowOriginFilter.class
 com\yidong\recruit\conf\SwaggerConfig.class
+com\yidong\recruit\listener\MessageConsumer.class

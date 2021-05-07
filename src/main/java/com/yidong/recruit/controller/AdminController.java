@@ -32,7 +32,7 @@ public class AdminController {
         // 将用户的状态 更改为已完成
         String result = userService.getNext(direction);
 //        System.out.println("接收前台getNext请求，处理下一个...");
-        log.info("接收前台getNext请求，处理下一个...");
+//        log.info("接收前台getNext请求，处理下一个...");
 
         return new ResultBean<>(ResultBean.SUCCESS_CODE,result);
     }
