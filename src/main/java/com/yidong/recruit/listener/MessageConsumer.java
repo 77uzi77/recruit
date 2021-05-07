@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.RedisUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.Map;
  * discription
  */
 @Component
+@Slf4j
 public class MessageConsumer {
 
     @Autowired
@@ -56,10 +58,11 @@ public class MessageConsumer {
 
             // 更新 等待队列
             updateWaitQueue(openid,direction);
-
-            System.out.println("  MyAckReceiver  openid:" + openid + "  time:" + time);
-            System.out.println("消费的主题消息来自：" + message.getMessageProperties().getConsumerQueue());
-            System.out.println("处理消息成功！");
+            log.info("  MyAckReceiver  openid:{}   time:{}",openid,time);
+//            System.out.println("  MyAckReceiver  openid:" + openid + "  time:" + time);
+//            System.out.println("消费的主题消息来自：" + message.getMessageProperties().getConsumerQueue());
+//            System.out.println("处理消息成功！");
+            log.info("处理消息成功！");
 
             channel.basicAck(deliveryTag, true); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
 //			channel.basicReject(deliveryTag, true);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝
@@ -93,9 +96,11 @@ public class MessageConsumer {
             // 更新 等待队列
             updateWaitQueue(openid,direction);
 
-            System.out.println("  MyAckReceiver  openid:" + openid + "  time:" + time);
-            System.out.println("消费的主题消息来自：" + message.getMessageProperties().getConsumerQueue());
-            System.out.println("处理消息成功！");
+            log.info("  MyAckReceiver  openid:{}   time:{}",openid,time);
+//            System.out.println("  MyAckReceiver  openid:" + openid + "  time:" + time);
+//            System.out.println("消费的主题消息来自：" + message.getMessageProperties().getConsumerQueue());
+//            System.out.println("处理消息成功！");
+            log.info("处理消息成功！");
 
             channel.basicAck(deliveryTag, true); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
 //			channel.basicReject(deliveryTag, true);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝
@@ -111,21 +116,32 @@ public class MessageConsumer {
         // 更新用户状态
         userService.updateStatus(openid,"1");
 
-        // 更新等待队列
-        String waitQueue = (String) redisUtil.get("waitQueue");
-        int index = waitQueue.indexOf("$");
-        if (index != -1) {
-            redisUtil.set("waitQueue",waitQueue.substring(index + 1));
-        } else {
-            redisUtil.del("waitQueue");
-        }
-
         // 删除 该用户 排队信息
         redisUtil.del(openid);
         // 更新 后台/前端 排队人数
         if("后台".equals(direction)) {
+
+            // 更新后台等待队列
+            String backstageQueue = (String) redisUtil.get("backstageQueue");
+            int index = backstageQueue.indexOf("$");
+            if (index != -1) {
+                redisUtil.set("backstageQueue",backstageQueue.substring(index + 1));
+            } else {
+                redisUtil.del("backstageQueue");
+            }
+
             redisUtil.incr("backstageCount",-1);
-        }else{
+        } else {
+
+            // 更新前端等待队列
+            String foreQueue = (String) redisUtil.get("foreQueue");
+            int index = foreQueue.indexOf("$");
+            if (index != -1) {
+                redisUtil.set("foreQueue",foreQueue.substring(index + 1));
+            } else {
+                redisUtil.del("foreQueue");
+            }
+
             redisUtil.incr("foreCount",-1);
         }
 
