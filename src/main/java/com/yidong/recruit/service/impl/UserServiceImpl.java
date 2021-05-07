@@ -2,6 +2,7 @@ package com.yidong.recruit.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.yidong.recruit.entity.Sign;
+import com.yidong.recruit.listener.MessageConsumer;
 import com.yidong.recruit.mapper.UserMapper;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.RedisUtil;
@@ -99,16 +100,6 @@ public class UserServiceImpl implements UserService {
 
         if (res != null) {
 
-            // 保存 用户 排队 队列
-            String waitQueue = (String) redisUtil.get("waitQueue");
-            String user = JSON.toJSONString(res);
-            if(waitQueue != null) {
-                redisUtil.set("waitQueue",waitQueue + "$" + user);
-            }else{
-                redisUtil.set("waitQueue",user);
-            }
-
-
             // 将该用户的信息 加入 消息队列
             Map<String,String> data = new HashMap<>();
             data.put("openid",openid);
@@ -127,6 +118,15 @@ public class UserServiceImpl implements UserService {
                     redisUtil.set("backstageCount",1);
                 }
 
+                // 将用户 保存 到 后台等待队列
+                String backstageQueue = (String) redisUtil.get("backstageQueue");
+                String user = JSON.toJSONString(res);
+                if(backstageQueue != null) {
+                    redisUtil.set("backstageQueue",backstageQueue + "$" + user);
+                }else{
+                    redisUtil.set("backstageQueue",user);
+                }
+
                 // 分发到 后台等待队列
                 rabbitTemplate.convertAndSend("waitExchange","backstageRouting",data);
 
@@ -139,6 +139,15 @@ public class UserServiceImpl implements UserService {
                 }else {
                     redisUtil.set(openid,0);
                     redisUtil.set("foreCount",1);
+                }
+
+                // 将用户 保存 到 前端等待队列
+                String foreQueue = (String) redisUtil.get("foreQueue");
+                String user = JSON.toJSONString(res);
+                if(foreQueue != null) {
+                    redisUtil.set("foreQueue",foreQueue + "$" + user);
+                }else{
+                    redisUtil.set("foreQueue",user);
                 }
 
                 // 分发到 前端等待队列
@@ -218,15 +227,26 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * @param
+     * @param direction
      * @return String
      * @author lzc
-     * @date 2021/5/6
-     *  得到等待队列
+     * @date 2021/5/7
+     * 得到等待队列
      */
     @Override
-    public String getWaitQueue() {
-        return (String) redisUtil.get("waitQueue");
+    public String[] getWaitQueue(String direction) {
+        String waitQueue;
+        if ("fore".equals(direction) || "前端".equals(direction)) {
+            waitQueue = (String) redisUtil.get("foreQueue");
+        } else {
+            waitQueue = (String) redisUtil.get("backstageQueue");
+        }
+
+        if (waitQueue != null){
+            return waitQueue.split("\\$");
+        }
+
+        return new String[]{"队列为空"};
     }
 
     /**
@@ -253,6 +273,33 @@ public class UserServiceImpl implements UserService {
         return (String) redisUtil.get("firstBackstageUser");
     }
 
+    @Override
+    public String getNext(String direction) {
+        if ("fore".equals(direction) || "前端".equals(direction)) {
+            MessageConsumer.isForeFinish = true;
+        } else {
+            MessageConsumer.isBackstageFinish = true;
+        }
+        return "处理成功！";
+    }
+
+    /**
+     * @param openid
+     * @return String
+     * @author lzc
+     * @date 2021/5/7
+     * 根据openid 查找 等待队列
+     */
+    @Override
+    public String[] getWaitQueueByOpenid(String openid) {
+        Sign sign = new Sign();
+        sign.setOpenid(openid);
+        Sign user = userMapper.selectOne(sign);
+
+        String direction = user.getDirection();
+        return getWaitQueue(direction);
+    }
+
 
     /**
      * @param sign
@@ -261,7 +308,7 @@ public class UserServiceImpl implements UserService {
      * @date 2021/4/30
      *  构造 条件查询 的 example
      */
-    public Example createExample(Sign sign){
+    public Example createExample(Sign sign) {
         Example example = new Example(Sign.class);
         Example.Criteria criteria = example.createCriteria();
         if(sign != null){

@@ -26,9 +26,13 @@ public interface UserService {
 
     List<Sign> findUserInfo(Sign sign);
 
-    String getWaitQueue();
+    String[] getWaitQueue(String direction);
 
     String getFirstForeUser();
 
     String getFirstBackstageUser();
+
+    String getNext(String direction);
+
+    String[] getWaitQueueByOpenid(String openid);
 }
