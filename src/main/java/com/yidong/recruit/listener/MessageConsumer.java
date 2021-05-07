@@ -52,7 +52,8 @@ public class MessageConsumer {
 
             // 空循环模拟面试过程，等待前台通知面试结束
             while (!isForeFinish){
-
+                Thread.sleep(5000);
+//                log.info("前端面试中....");
             }
             isForeFinish = false;
 
@@ -89,7 +90,8 @@ public class MessageConsumer {
 
             // 空循环模拟面试过程，等待前台通知面试结束
             while (!isBackstageFinish){
-
+                Thread.sleep(5000);
+                log.info("后台面试中....");
             }
             isBackstageFinish = false;
 
@@ -123,9 +125,11 @@ public class MessageConsumer {
 
             // 更新后台等待队列
             String backstageQueue = (String) redisUtil.get("backstageQueue");
-            int index = backstageQueue.indexOf("$");
+            int index = backstageQueue.indexOf(";");
             if (index != -1) {
                 redisUtil.set("backstageQueue",backstageQueue.substring(index + 1));
+                System.out.println((String) redisUtil.get("backstageQueue"));
+                log.info("当前后台排队队列：{}",(String) redisUtil.get("backstageQueue"));
             } else {
                 redisUtil.del("backstageQueue");
             }
@@ -135,9 +139,11 @@ public class MessageConsumer {
 
             // 更新前端等待队列
             String foreQueue = (String) redisUtil.get("foreQueue");
-            int index = foreQueue.indexOf("$");
+            int index = foreQueue.indexOf(";");
             if (index != -1) {
                 redisUtil.set("foreQueue",foreQueue.substring(index + 1));
+                System.out.println((String) redisUtil.get("backstageQueue"));
+                log.info("当前前端排队队列：{}",(String) redisUtil.get("backstageQueue"));
             } else {
                 redisUtil.del("foreQueue");
             }
@@ -165,7 +171,7 @@ public class MessageConsumer {
     private Map<String, String> mapStringToMap(String str, int entryNum) {
         str = str.substring(1, str.length() - 1);
         String[] strs = str.split(",", entryNum);
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         for (String string : strs) {
             String key = string.split("=")[0].trim();
             String value = string.split("=")[1];
