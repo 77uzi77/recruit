@@ -1,6 +1,7 @@
 package com.yidong.recruit.service;
 
 
+import com.yidong.recruit.entity.Queue;
 import com.yidong.recruit.entity.Sign;
 
 /**
@@ -21,5 +22,9 @@ public interface UserService {
     void updateStatus(String openid,String status);
 
     String ifHadSigned(String openid);
+
+    String pushMessage(Integer id) throws Exception;
+
+   // Queue getQueueById(Integer id);
 
 }

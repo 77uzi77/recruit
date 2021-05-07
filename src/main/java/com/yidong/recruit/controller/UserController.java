@@ -1,9 +1,12 @@
 package com.yidong.recruit.controller;
 
+import com.yidong.recruit.entity.Message;
+import com.yidong.recruit.entity.Queue;
 import com.yidong.recruit.entity.ResultBean;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.exception.MyException;
 import com.yidong.recruit.service.UserService;
+import com.yidong.recruit.util.AccessTokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.http.HttpEntity;
@@ -37,6 +40,7 @@ public class UserController {
     private static final String APP_ID = "wx77bdfd88a7951579";
     private static final String APP_SECRET = "b011b325a41dc892205b5a231da6f0b3";
     private static final String GRANT_TYPE = "authorization_code";
+
     private static final String CONNECT_REDIRECT = "1";
 
     @GetMapping("getUserInfo/{code}")
@@ -125,12 +129,22 @@ public class UserController {
      * @date 2021/4/29
      *  查找是否重复报名
      */
-    @GetMapping("ifHadSigned/{openid}")
+    @GetMapping("ifHadSigned")
     @ApiOperation("查看是否重复报名")
-    public ResultBean<String> ifHadSigned(@PathVariable String openid){
+    public ResultBean<String> ifHadSigned(/*@PathVariable */String openid){
         String message = userService.ifHadSigned(openid);
 
         return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
 
+    }
+
+
+    @GetMapping("pushMessage")
+    @ApiOperation("推送消息")
+    // 通过排号编号 推送消息
+    public ResultBean<String> pushMessage(/*@PathVariable*/ Integer id) throws Exception {
+        String message = userService.pushMessage(id);
+
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
     }
 }
