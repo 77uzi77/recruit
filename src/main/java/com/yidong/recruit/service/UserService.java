@@ -35,4 +35,6 @@ public interface UserService {
     String getNext(String direction);
 
     String[] getWaitQueueByOpenid(String openid);
+
+    String pushMessage(Integer id) throws Exception;
 }

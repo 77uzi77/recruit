@@ -141,4 +141,14 @@ public class UserController {
         String[] waitQueue = userService.getWaitQueueByOpenid(openid);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,waitQueue);
     }
+
+    @GetMapping("pushMessage")
+    @ApiOperation("推送消息")
+    // 通过排号编号 推送消息
+    public ResultBean<String> pushMessage(/*@PathVariable*/ Integer id) throws Exception {
+        String message = userService.pushMessage(id);
+
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
+    }
+
 }
