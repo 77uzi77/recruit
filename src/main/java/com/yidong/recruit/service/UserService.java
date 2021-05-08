@@ -1,8 +1,9 @@
 package com.yidong.recruit.service;
 
 
-import com.yidong.recruit.entity.Queue;
 import com.yidong.recruit.entity.Sign;
+
+import java.util.List;
 
 /**
  * @author lzc
@@ -23,8 +24,15 @@ public interface UserService {
 
     String ifHadSigned(String openid);
 
-    String pushMessage(Integer id) throws Exception;
+    List<Sign> findUserInfo(Sign sign);
 
-   // Queue getQueueById(Integer id);
+    String[] getWaitQueue(String direction);
 
+    String getFirstForeUser();
+
+    String getFirstBackstageUser();
+
+    String getNext(String direction);
+
+    String[] getWaitQueueByOpenid(String openid);
 }

@@ -1,14 +1,12 @@
 package com.yidong.recruit.controller;
 
-import com.yidong.recruit.entity.Message;
-import com.yidong.recruit.entity.Queue;
 import com.yidong.recruit.entity.ResultBean;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.exception.MyException;
 import com.yidong.recruit.service.UserService;
-import com.yidong.recruit.util.AccessTokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -30,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("user")
 @Api(tags = "用户相关接口")
+@Slf4j
 public class UserController {
 
     @Autowired
@@ -39,7 +38,6 @@ public class UserController {
     private static final String APP_ID = "wx77bdfd88a7951579";
     private static final String APP_SECRET = "b011b325a41dc892205b5a231da6f0b3";
     private static final String GRANT_TYPE = "authorization_code";
-
     private static final String CONNECT_REDIRECT = "1";
 
     @GetMapping("getUserInfo/{code}")
@@ -71,22 +69,23 @@ public class UserController {
             response = httpClient.execute(httpget);
             // 从响应模型中获取响应实体
             HttpEntity responseEntity = response.getEntity();
-            System.out.println("响应状态为:" + response.getStatusLine());
+//            System.out.println("响应状态为:" + response.getStatusLine());
             if (responseEntity != null) {
                 res = EntityUtils.toString(responseEntity);
-                System.out.println("响应内容长度为:" + responseEntity.getContentLength());
-                System.out.println("响应内容为:" + res);
+//                System.out.println("响应内容长度为:" + responseEntity.getContentLength());
+//                System.out.println("响应内容为:" + res);
             }
             // 释放资源
             httpClient.close();
             response.close();
-        }catch (Exception e){
+        } catch (Exception e) {
            throw new MyException("获取用户openId失败！");
         }
 
         JSONObject jo = JSON.parseObject(res);
         String openid = jo.getString("openid");
-        System.out.println("openid：" + openid);
+        log.info("登录成功，openid为:{}",openid);
+//        System.out.println("openid：" + openid);
 
         return new ResultBean<>(ResultBean.SUCCESS_CODE,openid);
     }
@@ -100,7 +99,7 @@ public class UserController {
      */
     @PostMapping("sign")
     @ApiOperation("报名")
-    public ResultBean<String> sign(@RequestBody Sign sign){
+    public ResultBean<String> sign(@RequestBody Sign sign) {
         userService.addOne(sign);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
     }
@@ -108,7 +107,7 @@ public class UserController {
 
     @GetMapping("getStatus/{openid}")
     @ApiOperation("得到用户状态")
-    public ResultBean<String> getStatus(@PathVariable String openid){
+    public ResultBean<String> getStatus(@PathVariable String openid) {
         String status = userService.getStatus(openid);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,status);
     }
@@ -128,21 +127,18 @@ public class UserController {
      * @date 2021/4/29
      *  查找是否重复报名
      */
-    @GetMapping("ifHadSigned")
+    @GetMapping("ifHadSigned/{openid}")
     @ApiOperation("查看是否重复报名")
-    public ResultBean<String> ifHadSigned(/*@PathVariable */String openid){
+    public ResultBean<String> ifHadSigned(@PathVariable String openid) {
         String message = userService.ifHadSigned(openid);
 
         return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
     }
 
-
-    @GetMapping("pushMessage")
-    @ApiOperation("推送消息")
-    // 通过排号编号 推送消息
-    public ResultBean<String> pushMessage(/*@PathVariable*/ Integer id) throws Exception {
-        String message = userService.pushMessage(id);
-
-        return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
+    @GetMapping("getWaitQueueByOpenid/{openid}")
+    @ApiOperation("根据openid查找等待队列")
+    public ResultBean<String[]> getWaitQueueByOpenid(@PathVariable String openid) {
+        String[] waitQueue = userService.getWaitQueueByOpenid(openid);
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,waitQueue);
     }
 }
