@@ -1,15 +1,21 @@
 package com.yidong.recruit.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.yidong.recruit.entity.Message;
+import com.yidong.recruit.entity.Queue;
 import com.yidong.recruit.entity.Sign;
+import com.yidong.recruit.entity.TemplateData;
 import com.yidong.recruit.listener.MessageConsumer;
+import com.yidong.recruit.mapper.QueueMapper;
 import com.yidong.recruit.mapper.UserMapper;
 import com.yidong.recruit.service.UserService;
+import com.yidong.recruit.util.AccessTokenUtil;
 import com.yidong.recruit.util.RedisUtil;
 import com.yidong.recruit.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
@@ -17,6 +23,7 @@ import tk.mybatis.mapper.entity.Example;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author lzc
@@ -29,6 +36,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private QueueMapper queueMapper;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -326,6 +335,38 @@ public class UserServiceImpl implements UserService {
             }
         }
         return example;
+    }
+
+    @Override
+    public String pushMessage(Integer id) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
+        String access_token = AccessTokenUtil.getAccessToken();
+        String url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + access_token;
+
+        // 通过id查找对应排队的人的openid
+        Queue queue = new Queue();
+        queue.setId(id);
+        Queue resQueue = queueMapper.selectOne(queue);
+        String openid = resQueue.getOpenid();
+        System.out.println(openid);
+
+        // 封装推送消息的模板内容
+        Map<String, TemplateData> data = new HashMap<>();
+        data.put("面试通知",new TemplateData("您可以面试啦"));
+        data.put("面试地点",new TemplateData("教五创客C区"));
+
+        // 拼接推送的模板
+        Message message = new Message();
+        message.setId(id);
+        message.setTouser(openid);
+        message.setTemplate_id("KvBGv6vFbfxUvryDC1XQlpyHVzz3E5V8Q1Z0D86u47Q");
+        //    message.setPage("/pages/index");
+        message.setData(data);
+
+        // 发送
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url,message,String.class);
+        System.out.println("推送返回的信息是：" + responseEntity.getBody());
+        return responseEntity.getBody();
     }
 
 }
