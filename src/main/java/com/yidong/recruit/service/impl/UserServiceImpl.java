@@ -2,11 +2,9 @@ package com.yidong.recruit.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.yidong.recruit.entity.Message;
-import com.yidong.recruit.entity.Queue;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.entity.TemplateData;
 import com.yidong.recruit.listener.MessageConsumer;
-import com.yidong.recruit.mapper.QueueMapper;
 import com.yidong.recruit.mapper.UserMapper;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.AccessTokenUtil;
@@ -36,8 +34,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
-    @Autowired
-    private QueueMapper queueMapper;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -338,16 +334,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String pushMessage(Integer id) throws Exception {
+    public String pushMessage(Integer openid) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         String access_token = AccessTokenUtil.getAccessToken();
         String url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + access_token;
 
-        // 通过id查找对应排队的人的openid
+    /*    // 通过id查找对应排队的人的openid
         Queue queue = new Queue();
         queue.setId(id);
         Queue resQueue = queueMapper.selectOne(queue);
-        String openid = resQueue.getOpenid();
+        String openid = resQueue.getOpenid(); */
         System.out.println(openid);
 
         // 封装推送消息的模板内容
@@ -357,8 +353,8 @@ public class UserServiceImpl implements UserService {
 
         // 拼接推送的模板
         Message message = new Message();
-        message.setId(id);
-        message.setTouser(openid);
+   //     message.setId(id);
+        message.setTouser(String.valueOf(openid));
         message.setTemplate_id("KvBGv6vFbfxUvryDC1XQlpyHVzz3E5V8Q1Z0D86u47Q");
         //    message.setPage("/pages/index");
         message.setData(data);
