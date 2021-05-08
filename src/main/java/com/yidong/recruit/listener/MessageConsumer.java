@@ -117,7 +117,8 @@ public class MessageConsumer {
     private void updateWaitQueue(String openid,String direction){
 
         // 更新用户状态
-        userService.updateStatus(openid,"1");
+        userService.updateStatus(openid,"2");
+        log.info("用户{}面试完了，更新状态为2",openid);
 
         // 删除 该用户 排队信息
         redisUtil.del(openid);
@@ -152,8 +153,7 @@ public class MessageConsumer {
             redisUtil.incr("foreCount",-1);
         }
 
-        // 更新用户状态
-        userService.updateStatus(openid,"2");
+
 
         // 根据 方向 查找 用户 openid
         Sign chooseSign = new Sign();

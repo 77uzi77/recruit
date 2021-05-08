@@ -1,6 +1,5 @@
 package com.yidong.recruit.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
