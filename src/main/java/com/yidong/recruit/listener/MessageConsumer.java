@@ -52,7 +52,8 @@ public class MessageConsumer {
 
             // 空循环模拟面试过程，等待前台通知面试结束
             while (!isForeFinish){
-                Thread.sleep(5000);
+//                Thread.sleep(5000);
+                Thread.sleep(1);
 //                log.info("前端面试中....");
             }
             isForeFinish = false;
@@ -90,8 +91,8 @@ public class MessageConsumer {
 
             // 空循环模拟面试过程，等待前台通知面试结束
             while (!isBackstageFinish){
-                Thread.sleep(5000);
-                log.info("后台面试中....");
+                Thread.sleep(1);
+//                log.info("后台面试中....");
             }
             isBackstageFinish = false;
 
@@ -151,10 +152,12 @@ public class MessageConsumer {
             redisUtil.incr("foreCount",-1);
         }
 
+        // 更新用户状态
+        userService.updateStatus(openid,"2");
+
         // 根据 方向 查找 用户 openid
         Sign chooseSign = new Sign();
         chooseSign.setDirection(direction);
-        chooseSign.setStatus("2");
         List<Sign> userList = userService.findUserInfo(chooseSign);
         // 更新 用户 还需 等待人数
         for(Sign sign : userList){
