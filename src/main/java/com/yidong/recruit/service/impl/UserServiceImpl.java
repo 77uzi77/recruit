@@ -297,7 +297,7 @@ public class UserServiceImpl implements UserService {
      * @return String
      * @author lzc
      * @date 2021/5/7
-     * 根据openid 查找 等待队列
+     * 根据openid 查找  等待队列
      */
     @Override
     public String[] getWaitQueueByOpenid(String openid) {
