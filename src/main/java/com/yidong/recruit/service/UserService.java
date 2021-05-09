@@ -36,7 +36,7 @@ public interface UserService {
 
     String[] getWaitQueueByOpenid(String openid);
 
-    String pushMessage(Integer id) throws Exception;
-
     String cancelWait(String openid);
+
+    String pushMessage(String openid) throws Exception;
 }

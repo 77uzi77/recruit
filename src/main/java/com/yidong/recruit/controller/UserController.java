@@ -144,8 +144,8 @@ public class UserController {
     @GetMapping("pushMessage")
     @ApiOperation("推送消息")
     // 通过排号编号 推送消息
-    public ResultBean<String> pushMessage(/*@PathVariable*/ Integer id) throws Exception {
-        String message = userService.pushMessage(id);
+    public ResultBean<String> pushMessage(/*@PathVariable*/ String openid) throws Exception {
+        String message = userService.pushMessage(openid);
 
         return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
     }

@@ -16,7 +16,6 @@ com\yidong\recruit\entity\TemplateData.class
 com\yidong\recruit\RecruitApplication.class
 com\yidong\recruit\service\UserService.class
 com\yidong\recruit\conf\SwaggerConfig.class
-com\yidong\recruit\mapper\QueueMapper.class
 com\yidong\recruit\util\TimeUtil.class
 com\yidong\recruit\conf\RedisConfig.class
 com\yidong\recruit\exception\MyExceptionCode.class

@@ -2,11 +2,9 @@ package com.yidong.recruit.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.yidong.recruit.entity.Message;
-import com.yidong.recruit.entity.Queue;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.entity.TemplateData;
 import com.yidong.recruit.listener.MessageConsumer;
-import com.yidong.recruit.mapper.QueueMapper;
 import com.yidong.recruit.mapper.UserMapper;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.AccessTokenUtil;
@@ -38,8 +36,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
-    @Autowired
-    private QueueMapper queueMapper;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -308,7 +304,7 @@ public class UserServiceImpl implements UserService {
      * @return String
      * @author lzc
      * @date 2021/5/7
-     * 根据openid 查找 等待队列
+     * 根据openid 查找  等待队列
      */
     @Override
     public String[] getWaitQueueByOpenid(String openid) {
@@ -345,30 +341,43 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String pushMessage(Integer id) throws Exception {
+    public String pushMessage(String openid) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         String access_token = AccessTokenUtil.getAccessToken();
         String url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + access_token;
 
-        // 通过id查找对应排队的人的openid
+    /*    // 通过id查找对应排队的人的openid
         Queue queue = new Queue();
         queue.setId(id);
         Queue resQueue = queueMapper.selectOne(queue);
-        String openid = resQueue.getOpenid();
+        String openid = resQueue.getOpenid(); */
         System.out.println(openid);
 
-        // 封装推送消息的模板内容
-        Map<String, TemplateData> data = new HashMap<>();
-        data.put("面试通知",new TemplateData("您可以面试啦"));
-        data.put("面试地点",new TemplateData("教五创客C区"));
+        // 通过openid查找 排队的人的姓名、方向
+        Sign sign = new Sign();
+        sign.setOpenid(openid);
+        Sign resSign = userMapper.selectOne(sign);
 
-        // 拼接推送的模板
-        Message message = new Message();
-        message.setId(id);
-        message.setTouser(openid);
-        message.setTemplate_id("KvBGv6vFbfxUvryDC1XQlpyHVzz3E5V8Q1Z0D86u47Q");
-        //    message.setPage("/pages/index");
-        message.setData(data);
+            // 封装推送消息的模板内容
+            Map<String, TemplateData> data = new HashMap<>();
+    /*        data.put("面试通知", new TemplateData("您可以面试啦"));
+            data.put("面试地点", new TemplateData("教五创客C区"));
+        if(resSign!=null) {
+            data.put("面试人", new TemplateData(resSign.getName()));
+            data.put("面试方向", new TemplateData(resSign.getDirection()));
+        }*/
+        data.put("name1",new TemplateData("您可以面试啦"));
+        data.put("date3",new TemplateData("2020年5月9日 13:04"));
+
+
+            // 拼接推送的模板
+            Message message = new Message();
+            //     message.setId(id);
+            message.setTouser(openid);
+            message.setTemplate_id("KvBGv6vFbfxUvryDC1XQlpyHVzz3E5V8Q1Z0D86u47Q");
+            //    message.setPage("/pages/index");
+            message.setData(data);
+
 
         // 发送
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(url,message,String.class);
