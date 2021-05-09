@@ -104,7 +104,6 @@ public class UserController {
         return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
     }
 
-
     @GetMapping("getStatus/{openid}")
     @ApiOperation("得到用户状态")
     public ResultBean<String> getStatus(@PathVariable String openid) {
@@ -148,6 +147,13 @@ public class UserController {
     public ResultBean<String> pushMessage(/*@PathVariable*/ Integer id) throws Exception {
         String message = userService.pushMessage(id);
 
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
+    }
+//
+    @GetMapping("cancelWait/{openid}")
+    @ApiOperation("取消排队")
+    public ResultBean<String> cancelWait(@PathVariable String openid) {
+        String message = userService.cancelWait(openid);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
     }
 

@@ -23,6 +23,8 @@ import tk.mybatis.mapper.entity.Example;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.LockSupport;
+
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -119,19 +121,20 @@ public class UserServiceImpl implements UserService {
 
             // 判断排队用户的方向 是后台还是前端
             if("后台".equals(res.getDirection())) {
-                Integer backstageCount = (Integer) redisUtil.get("backstageCount");
-                // 通过 backstageCount 更新 用户 需要等待的人数
-                if (backstageCount != null){
-                    redisUtil.set(openid,backstageCount);
-                    redisUtil.incr("backstageCount",1);
-                }else {
-                    redisUtil.set(openid,0);
-                    redisUtil.set("backstageCount",1);
-                }
+//                Integer backstageCount = (Integer) redisUtil.get("backstageCount");
+//                // 通过 backstageCount 更新 用户 需要等待的人数
+//                if (backstageCount != null){
+//                    redisUtil.set(openid,backstageCount);
+//                    redisUtil.incr("backstageCount",1);
+//                }else {
+//                    redisUtil.set(openid,0);
+//                    redisUtil.set("backstageCount",1);
+//                }
 
                 // 将用户 保存 到 后台等待队列
                 String backstageQueue = (String) redisUtil.get("backstageQueue");
                 String user = JSON.toJSONString(res);
+                log.info("报名信息转化成的json对象：{}",user);
                 if(backstageQueue != null) {
                     redisUtil.set("backstageQueue",backstageQueue + ";" + user);
                 }else{
@@ -143,18 +146,19 @@ public class UserServiceImpl implements UserService {
 
             }else {
                 // 通过 foreCount 更新 用户 需要等待的人数
-                Integer backstageCount = (Integer) redisUtil.get("foreCount");
-                if (backstageCount != null){
-                    redisUtil.set(openid,backstageCount);
-                    redisUtil.incr("foreCount",1);
-                }else {
-                    redisUtil.set(openid,0);
-                    redisUtil.set("foreCount",1);
-                }
+//                Integer backstageCount = (Integer) redisUtil.get("foreCount");
+//                if (backstageCount != null){
+//                    redisUtil.set(openid,backstageCount);
+//                    redisUtil.incr("foreCount",1);
+//                }else {
+//                    redisUtil.set(openid,0);
+//                    redisUtil.set("foreCount",1);
+//                }
 
                 // 将用户 保存 到 前端等待队列
                 String foreQueue = (String) redisUtil.get("foreQueue");
                 String user = JSON.toJSONString(res);
+                log.info("报名信息转化成的json对象：{}",user);
                 if(foreQueue != null) {
                     redisUtil.set("foreQueue",foreQueue + ";" + user);
                 }else{
@@ -203,6 +207,7 @@ public class UserServiceImpl implements UserService {
         Example example = new Example(Sign.class);
         example.createCriteria().andEqualTo("openid",openid);
         userMapper.updateByExampleSelective(one,example);
+        log.info("service成功修改用户{}状态为2",openid);
     }
 
     @Override
@@ -267,10 +272,10 @@ public class UserServiceImpl implements UserService {
      * @date 2021/5/6
      *  得到前端队列的第一个用户
      */
-    @Override
-    public String getFirstForeUser() {
-        return (String) redisUtil.get("firstForeUser");
-    }
+//    @Override
+//    public String getFirstForeUser() {
+//        return (String) redisUtil.get("firstForeUser");
+//    }
 
     /**
      * @param
@@ -279,18 +284,20 @@ public class UserServiceImpl implements UserService {
      * @date 2021/5/6
      *  得到后台队列的第一个用户
      */
-    @Override
-    public String getFirstBackstageUser() {
-        return (String) redisUtil.get("firstBackstageUser");
-    }
+//    @Override
+//    public String getFirstBackstageUser() {
+//        return (String) redisUtil.get("firstBackstageUser");
+//    }
 
     @Override
     public String getNext(String direction) {
         if ("fore".equals(direction) || "前端".equals(direction)) {
-            MessageConsumer.isForeFinish = true;
+//            MessageConsumer.isForeFinish = true;
+            LockSupport.unpark(MessageConsumer.isForeFinish);
             log.info("前端用户面试结束... 开始下一个");
         } else {
-            MessageConsumer.isBackstageFinish = true;
+//            MessageConsumer.isBackstageFinish = true;
+            LockSupport.unpark(MessageConsumer.isBackstageFinish);
             log.info("后台用户面试结束... 开始下一个");
         }
         return "处理成功！";
@@ -367,6 +374,47 @@ public class UserServiceImpl implements UserService {
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(url,message,String.class);
         System.out.println("推送返回的信息是：" + responseEntity.getBody());
         return responseEntity.getBody();
+    }
+
+    @Override
+    public String cancelWait(String openid) {
+        // 判断用户是否在 队列中的 计数器
+
+        boolean flag = false;
+        String result;
+
+        Sign sign = new Sign();
+        sign.setOpenid(openid);
+        Sign user = userMapper.selectOne(sign);
+        String direction = user.getDirection();
+
+        String[] waitQueue = getWaitQueue(direction);
+
+        StringBuilder newQueue = new StringBuilder();
+        for (int i = 0; i < waitQueue.length; i++) {
+            if (waitQueue[i].contains(openid)) {
+                flag = true;
+                if (i == waitQueue.length - 1) {
+                    waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"}";
+                } else {
+                    waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"};";
+                }
+            }
+            newQueue.append(waitQueue[i]);
+        }
+
+        if (flag) {
+            if ("前端".equals(direction)) {
+                redisUtil.set("foreQueue",newQueue.toString());
+            } else {
+                redisUtil.set("backstageQueue",newQueue.toString());
+            }
+            result = "取消排队成功！";
+        } else {
+            result = "取消排队失败！";
+        }
+
+        return result;
     }
 
 }

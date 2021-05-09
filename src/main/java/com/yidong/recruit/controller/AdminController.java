@@ -59,4 +59,5 @@ public class AdminController {
         return new ResultBean<>(ResultBean.SUCCESS_CODE,waitQueue);
     }
 
+
 }

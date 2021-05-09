@@ -28,13 +28,15 @@ public interface UserService {
 
     String[] getWaitQueue(String direction);
 
-    String getFirstForeUser();
-
-    String getFirstBackstageUser();
+//    String getFirstForeUser();
+//
+//    String getFirstBackstageUser();
 
     String getNext(String direction);
 
     String[] getWaitQueueByOpenid(String openid);
 
     String pushMessage(Integer id) throws Exception;
+
+    String cancelWait(String openid);
 }

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @author lzc
@@ -30,9 +31,10 @@ public class MessageConsumer {
     private RedisUtil redisUtil;
 
     // 判断 前端用户 是否面试结束
-    public static boolean isForeFinish = false;
+    public static Thread isForeFinish;
+//    public static boolean isForeFinish = false;
     // 判断 后台用户 是否面试结束
-    public static boolean isBackstageFinish = false;
+    public static Thread isBackstageFinish;
 
 
     @RabbitListener(queues = "foreQueue",concurrency = "1-1")
@@ -48,26 +50,32 @@ public class MessageConsumer {
             String direction = msgMap.get("direction");
 
             // 保留当前面试者openid
-            redisUtil.set("firstForeUser",openid);
+//            redisUtil.set("firstForeUser",openid);
 
             // 空循环模拟面试过程，等待前台通知面试结束
-            while (!isForeFinish){
+//            while (!isForeFinish){
 //                Thread.sleep(5000);
-                Thread.sleep(1);
+//                Thread.sleep(1);
 //                log.info("前端面试中....");
-            }
-            isForeFinish = false;
+//            }
+//            isForeFinish = false;
+            isForeFinish = Thread.currentThread();
+            LockSupport.park();
 
             // 更新 等待队列
-            updateWaitQueue(openid,direction);
-            log.info("  MyAckReceiver  openid:{}   time:{}",openid,time);
+            if (updateWaitQueue(openid,direction)) {
+                log.info("  MyAckReceiver  openid:{}   time:{}",openid,time);
 //            System.out.println("  MyAckReceiver  openid:" + openid + "  time:" + time);
 //            System.out.println("消费的主题消息来自：" + message.getMessageProperties().getConsumerQueue());
 //            System.out.println("处理消息成功！");
-            log.info("处理消息成功！");
+                log.info("处理消息成功！");
 
-            channel.basicAck(deliveryTag, true); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
-//			channel.basicReject(deliveryTag, true);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝
+                channel.basicAck(deliveryTag, false); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
+            } else {
+                log.info("用户取消排队....");
+                channel.basicReject(deliveryTag, false);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝
+            }
+
         } catch (Exception e) {
             channel.basicReject(deliveryTag, false);
             e.printStackTrace();
@@ -87,26 +95,32 @@ public class MessageConsumer {
             String direction = msgMap.get("direction");
 
             // 保留当前面试者openid
-            redisUtil.set("firstBackstageUser",openid);
+//            redisUtil.set("firstBackstageUser",openid);
 
             // 空循环模拟面试过程，等待前台通知面试结束
-            while (!isBackstageFinish){
-                Thread.sleep(1);
+//            while (!isBackstageFinish){
+//                Thread.sleep(1);
 //                log.info("后台面试中....");
-            }
-            isBackstageFinish = false;
+//            }
+//            isBackstageFinish = false;
+
+            isBackstageFinish = Thread.currentThread();
+            LockSupport.park();
 
             // 更新 等待队列
-            updateWaitQueue(openid,direction);
-
-            log.info("  MyAckReceiver  openid:{}   time:{}",openid,time);
+            if (updateWaitQueue(openid,direction)) {
+                log.info("  MyAckReceiver  openid:{}   time:{}",openid,time);
 //            System.out.println("  MyAckReceiver  openid:" + openid + "  time:" + time);
 //            System.out.println("消费的主题消息来自：" + message.getMessageProperties().getConsumerQueue());
 //            System.out.println("处理消息成功！");
-            log.info("处理消息成功！");
+                log.info("处理消息成功！");
 
-            channel.basicAck(deliveryTag, true); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
-//			channel.basicReject(deliveryTag, true);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝
+                channel.basicAck(deliveryTag, false); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
+            } else {
+                log.info("用户取消排队....");
+                channel.basicReject(deliveryTag, false);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝
+            }
+
         } catch (Exception e) {
             channel.basicReject(deliveryTag, false);
             e.printStackTrace();
@@ -114,29 +128,36 @@ public class MessageConsumer {
     }
 
 
-    private void updateWaitQueue(String openid,String direction){
+    private boolean updateWaitQueue(String openid,String direction){
 
-        // 更新用户状态
-        userService.updateStatus(openid,"2");
-        log.info("用户{}面试完了，更新状态为2",openid);
-
+        boolean result = true;
         // 删除 该用户 排队信息
-        redisUtil.del(openid);
+//        redisUtil.del(openid);
         // 更新 后台/前端 排队人数
         if("后台".equals(direction)) {
 
             // 更新后台等待队列
             String backstageQueue = (String) redisUtil.get("backstageQueue");
             int index = backstageQueue.indexOf(";");
+
             if (index != -1) {
                 redisUtil.set("backstageQueue",backstageQueue.substring(index + 1));
                 System.out.println((String) redisUtil.get("backstageQueue"));
-                log.info("当前后台排队队列：{}",(String) redisUtil.get("backstageQueue"));
+                log.info("当前后台排队队列：{}",redisUtil.get("backstageQueue"));
+
+                if (backstageQueue.substring(0,index).contains("state")) {
+                    result = false;
+                }
             } else {
+
                 redisUtil.del("backstageQueue");
+
+                if (backstageQueue.contains("state")) {
+                    result = false;
+                }
             }
 
-            redisUtil.incr("backstageCount",-1);
+//            redisUtil.incr("backstageCount",-1);
         } else {
 
             // 更新前端等待队列
@@ -145,28 +166,41 @@ public class MessageConsumer {
             if (index != -1) {
                 redisUtil.set("foreQueue",foreQueue.substring(index + 1));
                 System.out.println((String) redisUtil.get("backstageQueue"));
-                log.info("当前前端排队队列：{}",(String) redisUtil.get("backstageQueue"));
+                log.info("当前前端排队队列：{}",redisUtil.get("backstageQueue"));
+
+                if (foreQueue.substring(0,index).contains("state")) {
+                    result = false;
+                }
             } else {
                 redisUtil.del("foreQueue");
+
+                if (foreQueue.contains("state")) {
+                    result = false;
+                }
             }
 
-            redisUtil.incr("foreCount",-1);
+//            redisUtil.incr("foreCount",-1);
         }
 
-
+        if (result) {
+            // 更新用户状态
+            userService.updateStatus(openid,"2");
+            log.info("用户{}面试完了，更新状态为2",openid);
+        }
 
         // 根据 方向 查找 用户 openid
-        Sign chooseSign = new Sign();
-        chooseSign.setDirection(direction);
-        List<Sign> userList = userService.findUserInfo(chooseSign);
+//        Sign chooseSign = new Sign();
+//        chooseSign.setDirection(direction);
+//        List<Sign> userList = userService.findUserInfo(chooseSign);
         // 更新 用户 还需 等待人数
-        for(Sign sign : userList){
-            String userOpenid = sign.getOpenid();
-            Integer waitCount = (Integer) redisUtil.get(userOpenid);
-            if (waitCount != null){
-                redisUtil.incr(userOpenid,-1);
-            }
-        }
+//        for(Sign sign : userList){
+//            String userOpenid = sign.getOpenid();
+//            Integer waitCount = (Integer) redisUtil.get(userOpenid);
+//            if (waitCount != null){
+//                redisUtil.incr(userOpenid,-1);
+//            }
+//        }
+        return result;
     }
 
 
