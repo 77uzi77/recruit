@@ -353,12 +353,14 @@ public class UserServiceImpl implements UserService {
 
             // 封装推送消息的模板内容
             Map<String, TemplateData> data = new HashMap<>();
-            data.put("面试通知", new TemplateData("您可以面试啦"));
+    /*        data.put("面试通知", new TemplateData("您可以面试啦"));
             data.put("面试地点", new TemplateData("教五创客C区"));
         if(resSign!=null) {
             data.put("面试人", new TemplateData(resSign.getName()));
             data.put("面试方向", new TemplateData(resSign.getDirection()));
-        }
+        }*/
+        data.put("name1",new TemplateData("您可以面试啦"));
+        data.put("date3",new TemplateData("2020年5月9日 13:04"));
 
 
             // 拼接推送的模板

@@ -14,7 +14,7 @@ import java.util.Map;
 @Builder
 @Api("推送消息模板")
 public class Message {
-    private Integer id;
+
     private String touser;
     private String template_id;
   //  private String page;
