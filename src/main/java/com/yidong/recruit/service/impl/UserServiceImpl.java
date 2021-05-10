@@ -140,7 +140,7 @@ public class UserServiceImpl implements UserService {
                 // 分发到 后台等待队列
                 rabbitTemplate.convertAndSend("waitExchange","backstageRouting",data);
 
-            }else {
+            } else {
                 // 通过 foreCount 更新 用户 需要等待的人数
 //                Integer backstageCount = (Integer) redisUtil.get("foreCount");
 //                if (backstageCount != null){
@@ -399,28 +399,36 @@ public class UserServiceImpl implements UserService {
 
         String[] waitQueue = getWaitQueue(direction);
 
-        StringBuilder newQueue = new StringBuilder();
-        for (int i = 0; i < waitQueue.length; i++) {
-            if (waitQueue[i].contains(openid)) {
-                flag = true;
-                if (i == waitQueue.length - 1) {
-                    waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"}";
-                } else {
-                    waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"};";
-                }
-            }
-            newQueue.append(waitQueue[i]);
-        }
-
-        if (flag) {
-            if ("前端".equals(direction)) {
-                redisUtil.set("foreQueue",newQueue.toString());
-            } else {
-                redisUtil.set("backstageQueue",newQueue.toString());
-            }
-            result = "取消排队成功！";
-        } else {
+        if (waitQueue == null) {
             result = "取消排队失败！";
+        } else {
+            StringBuilder newQueue = new StringBuilder();
+            for (int i = 0; i < waitQueue.length; i++) {
+                if (waitQueue[i].contains(openid)) {
+                    flag = true;
+                    if (i == waitQueue.length - 1) {
+                        waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"}";
+                    } else {
+                        waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"};";
+                    }
+                } else {
+                    if (i != waitQueue.length - 1) {
+                        waitQueue[i] = waitQueue[i] + ";";
+                    }
+                }
+                newQueue.append(waitQueue[i]);
+            }
+
+            if (flag) {
+                if ("前端".equals(direction)) {
+                    redisUtil.set("foreQueue",newQueue.toString());
+                } else {
+                    redisUtil.set("backstageQueue",newQueue.toString());
+                }
+                result = "取消排队成功！";
+            } else {
+                result = "取消排队失败！";
+            }
         }
 
         return result;

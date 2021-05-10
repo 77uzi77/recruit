@@ -36,7 +36,6 @@ public class MessageConsumer {
     // 判断 后台用户 是否面试结束
     public static Thread isBackstageFinish;
 
-
     @RabbitListener(queues = "foreQueue",concurrency = "1-1")
     public void foreConsumer(Message message, Channel channel) throws IOException {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
@@ -127,7 +126,14 @@ public class MessageConsumer {
         }
     }
 
-
+    /**
+     * @param openid
+     * @param direction
+     * @return boolean
+     * @author lzc
+     * @date 2021/5/9
+     *  更新排队队列
+     */
     private boolean updateWaitQueue(String openid,String direction){
 
         boolean result = true;
@@ -142,21 +148,18 @@ public class MessageConsumer {
 
             if (index != -1) {
                 redisUtil.set("backstageQueue",backstageQueue.substring(index + 1));
-                System.out.println((String) redisUtil.get("backstageQueue"));
+//                System.out.println((String) redisUtil.get("backstageQueue"));
                 log.info("当前后台排队队列：{}",redisUtil.get("backstageQueue"));
-
                 if (backstageQueue.substring(0,index).contains("state")) {
                     result = false;
                 }
             } else {
-
                 redisUtil.del("backstageQueue");
 
                 if (backstageQueue.contains("state")) {
                     result = false;
                 }
             }
-
 //            redisUtil.incr("backstageCount",-1);
         } else {
 
@@ -165,8 +168,8 @@ public class MessageConsumer {
             int index = foreQueue.indexOf(";");
             if (index != -1) {
                 redisUtil.set("foreQueue",foreQueue.substring(index + 1));
-                System.out.println((String) redisUtil.get("backstageQueue"));
-                log.info("当前前端排队队列：{}",redisUtil.get("backstageQueue"));
+//                System.out.println((String) redisUtil.get("foreQueue"));
+                log.info("当前前端排队队列：{}",redisUtil.get("foreQueue"));
 
                 if (foreQueue.substring(0,index).contains("state")) {
                     result = false;
@@ -178,7 +181,6 @@ public class MessageConsumer {
                     result = false;
                 }
             }
-
 //            redisUtil.incr("foreCount",-1);
         }
 

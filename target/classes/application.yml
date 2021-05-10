@@ -17,10 +17,13 @@ spring:
     listener:
       direct:
         prefetch: 1
-      type: simple
+        acknowledge-mode: manual
+        default-requeue-rejected: false
       simple:
         default-requeue-rejected: false
         acknowledge-mode: manual
+        prefetch: 1
+
 
   #    publisher-confirm-type: correlated
 #    publisher-returns: true

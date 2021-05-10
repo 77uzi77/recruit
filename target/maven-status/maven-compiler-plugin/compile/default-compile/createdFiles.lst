@@ -1,5 +1,4 @@
 com\yidong\recruit\entity\ResultBean$ResultBeanBuilder.class
-com\yidong\recruit\entity\Queue.class
 com\yidong\recruit\entity\Sign.class
 com\yidong\recruit\exception\MyException.class
 com\yidong\recruit\mapper\UserMapper.class
