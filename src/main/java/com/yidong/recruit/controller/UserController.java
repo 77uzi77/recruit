@@ -3,12 +3,15 @@ package com.yidong.recruit.controller;
 import com.yidong.recruit.entity.ResultBean;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.service.UserService;
+import com.yidong.recruit.service.impl.UserServiceImpl;
 import com.yidong.recruit.util.AccessTokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * @author lzc
@@ -99,6 +102,16 @@ public class UserController {
     public ResultBean<String> cancelWait(@PathVariable String openid) {
         String message = userService.cancelWait(openid);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
+    }
+
+
+    @PostMapping("checkSign")
+    @ApiOperation("检查报名信息格式")
+    public ResultBean<Map<String,String>> checkSign(@RequestBody Sign sign){
+
+        Map<String,String> checkMap = userService.checkSign(sign);
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,checkMap);
+
     }
 
 }
