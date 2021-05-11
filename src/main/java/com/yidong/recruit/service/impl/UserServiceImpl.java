@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.LockSupport;
+import java.util.regex.Pattern;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService {
      * @return void
      * @author lzc
      * @date 2021/4/25
-     *  报名
+     * 报名
      */
     @Override
     public void addOne(Sign one) {
@@ -62,8 +63,8 @@ public class UserServiceImpl implements UserService {
         if (checkOne != null) {
             one.setId(checkOne.getId());
             userMapper.updateByPrimaryKeySelective(one);
-        // 没报名则新增
-        }else{
+            // 没报名则新增
+        } else {
             userMapper.insertSelective(one);
         }
     }
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
      * @return String
      * @author lzc
      * @date 2021/4/30
-     *  通过 openid 得到 用户状态
+     * 通过 openid 得到 用户状态
      */
     @Override
     public String getStatus(String openid) {
@@ -82,10 +83,10 @@ public class UserServiceImpl implements UserService {
         Sign one = new Sign();
         one.setOpenid(openid);
         Sign res = userMapper.selectOne(one);
-        if (res != null){
+        if (res != null) {
             // 已报名，则返回用户 状态
             return res.getStatus();
-        }else{
+        } else {
             // 未报名，则返回默认值 0
             return "0";
         }
@@ -96,7 +97,7 @@ public class UserServiceImpl implements UserService {
      * @return String
      * @author lzc
      * @date 2021/4/30
-     *  用户 排队 功能
+     * 用户 排队 功能
      */
     @Override
     public String wait(String openid) {
@@ -110,13 +111,13 @@ public class UserServiceImpl implements UserService {
         if (res != null) {
 
             // 将该用户的信息 加入 消息队列
-            Map<String,String> data = new HashMap<>();
-            data.put("openid",openid);
+            Map<String, String> data = new HashMap<>();
+            data.put("openid", openid);
             data.put("time", TimeUtil.getCurrentTime());
-            data.put("direction",res.getDirection());
+            data.put("direction", res.getDirection());
 
             // 判断排队用户的方向 是后台还是前端
-            if("后台".equals(res.getDirection())) {
+            if ("后台".equals(res.getDirection())) {
 //                Integer backstageCount = (Integer) redisUtil.get("backstageCount");
 //                // 通过 backstageCount 更新 用户 需要等待的人数
 //                if (backstageCount != null){
@@ -130,15 +131,15 @@ public class UserServiceImpl implements UserService {
                 // 将用户 保存 到 后台等待队列
                 String backstageQueue = (String) redisUtil.get("backstageQueue");
                 String user = JSON.toJSONString(res);
-                log.info("报名信息转化成的json对象：{}",user);
-                if(backstageQueue != null) {
-                    redisUtil.set("backstageQueue",backstageQueue + ";" + user);
-                }else{
-                    redisUtil.set("backstageQueue",user);
+                log.info("报名信息转化成的json对象：{}", user);
+                if (backstageQueue != null) {
+                    redisUtil.set("backstageQueue", backstageQueue + ";" + user);
+                } else {
+                    redisUtil.set("backstageQueue", user);
                 }
 
                 // 分发到 后台等待队列
-                rabbitTemplate.convertAndSend("waitExchange","backstageRouting",data);
+                rabbitTemplate.convertAndSend("waitExchange", "backstageRouting", data);
 
             } else {
                 // 通过 foreCount 更新 用户 需要等待的人数
@@ -154,19 +155,19 @@ public class UserServiceImpl implements UserService {
                 // 将用户 保存 到 前端等待队列
                 String foreQueue = (String) redisUtil.get("foreQueue");
                 String user = JSON.toJSONString(res);
-                log.info("报名信息转化成的json对象：{}",user);
-                if(foreQueue != null) {
-                    redisUtil.set("foreQueue",foreQueue + ";" + user);
-                }else{
-                    redisUtil.set("foreQueue",user);
+                log.info("报名信息转化成的json对象：{}", user);
+                if (foreQueue != null) {
+                    redisUtil.set("foreQueue", foreQueue + ";" + user);
+                } else {
+                    redisUtil.set("foreQueue", user);
                 }
 
                 // 分发到 前端等待队列
-                rabbitTemplate.convertAndSend("waitExchange","foreRouting",data);
+                rabbitTemplate.convertAndSend("waitExchange", "foreRouting", data);
             }
 
             message = "排队成功！";
-        }else{
+        } else {
             message = "排队失败！";
         }
         return message;
@@ -195,15 +196,15 @@ public class UserServiceImpl implements UserService {
      *  更新用户状态
      */
     @Override
-    public void updateStatus(String openid,String status) {
+    public void updateStatus(String openid, String status) {
         Sign one = new Sign();
         one.setStatus(status);
         one.setOpenid(openid);
 //        System.out.println(one.getOpenid());
         Example example = new Example(Sign.class);
-        example.createCriteria().andEqualTo("openid",openid);
-        userMapper.updateByExampleSelective(one,example);
-        log.info("service成功修改用户{}状态为2",openid);
+        example.createCriteria().andEqualTo("openid", openid);
+        userMapper.updateByExampleSelective(one, example);
+        log.info("service成功修改用户{}状态为2", openid);
     }
 
     @Override
@@ -213,10 +214,10 @@ public class UserServiceImpl implements UserService {
         checkSign.setOpenid(openid);
         String result;
 
-        if (userMapper.selectOne(checkSign) != null){
+        if (userMapper.selectOne(checkSign) != null) {
             // 已报名则返回提示：您已报名，确定重复报名？
             result = "您已报名，确定重复报名？";
-        }else{
+        } else {
             result = "是否确定报名？";
             // 未报名则新增: 调用addOne接口
         }
@@ -228,7 +229,7 @@ public class UserServiceImpl implements UserService {
      * @return List<Sign>
      * @author lzc
      * @date 2021/4/30
-     *  条件查询 用户信息
+     * 条件查询 用户信息
      */
     @Override
     public List<Sign> findUserInfo(Sign sign) {
@@ -254,7 +255,7 @@ public class UserServiceImpl implements UserService {
             waitQueue = (String) redisUtil.get("backstageQueue");
         }
 
-        if (waitQueue != null){
+        if (waitQueue != null) {
             return waitQueue.split(";");
         }
 
@@ -278,13 +279,12 @@ public class UserServiceImpl implements UserService {
      * @return String
      * @author lzc
      * @date 2021/5/6
-     *  得到后台队列的第一个用户
+     * 得到后台队列的第一个用户
      */
 //    @Override
 //    public String getFirstBackstageUser() {
 //        return (String) redisUtil.get("firstBackstageUser");
 //    }
-
     @Override
     public String getNext(String direction) {
         if ("fore".equals(direction) || "前端".equals(direction)) {
@@ -322,19 +322,19 @@ public class UserServiceImpl implements UserService {
      * @return Example
      * @author lzc
      * @date 2021/4/30
-     *  构造 条件查询 的 example
+     * 构造 条件查询 的 example
      */
     public Example createExample(Sign sign) {
         Example example = new Example(Sign.class);
         Example.Criteria criteria = example.createCriteria();
-        if(sign != null){
+        if (sign != null) {
             // 方向
-            if (StringUtils.hasText(sign.getDirection())){
-                criteria.andEqualTo("direction",sign.getDirection());
+            if (StringUtils.hasText(sign.getDirection())) {
+                criteria.andEqualTo("direction", sign.getDirection());
             }
             // 状态
-            if (StringUtils.hasText(sign.getStatus())){
-                criteria.andEqualTo("status",sign.getStatus());
+            if (StringUtils.hasText(sign.getStatus())) {
+                criteria.andEqualTo("status", sign.getStatus());
             }
         }
         return example;
@@ -358,32 +358,33 @@ public class UserServiceImpl implements UserService {
         sign.setOpenid(openid);
         Sign resSign = userMapper.selectOne(sign);
 
-            // 封装推送消息的模板内容
-            Map<String, TemplateData> data = new HashMap<>();
+        // 封装推送消息的模板内容
+        Map<String, TemplateData> data = new HashMap<>();
     /*        data.put("面试通知", new TemplateData("您可以面试啦"));
             data.put("面试地点", new TemplateData("教五创客C区"));
         if(resSign!=null) {
             data.put("面试人", new TemplateData(resSign.getName()));
             data.put("面试方向", new TemplateData(resSign.getDirection()));
         }*/
-        data.put("name1",new TemplateData("您可以面试啦"));
-        data.put("date3",new TemplateData("2020年5月9日 13:04"));
+        data.put("name1", new TemplateData("您可以面试啦"));
+        data.put("date3", new TemplateData("2020年5月9日 13:04"));
 
 
-            // 拼接推送的模板
-            Message message = new Message();
-            //     message.setId(id);
-            message.setTouser(openid);
-            message.setTemplate_id("KvBGv6vFbfxUvryDC1XQlpyHVzz3E5V8Q1Z0D86u47Q");
-            //    message.setPage("/pages/index");
-            message.setData(data);
+        // 拼接推送的模板
+        Message message = new Message();
+        //     message.setId(id);
+        message.setTouser(openid);
+        message.setTemplate_id("KvBGv6vFbfxUvryDC1XQlpyHVzz3E5V8Q1Z0D86u47Q");
+        //    message.setPage("/pages/index");
+        message.setData(data);
 
 
         // 发送
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url,message,String.class);
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, message, String.class);
         System.out.println("推送返回的信息是：" + responseEntity.getBody());
         return responseEntity.getBody();
     }
+
 
     @Override
     public String cancelWait(String openid) {
@@ -407,9 +408,9 @@ public class UserServiceImpl implements UserService {
                 if (waitQueue[i].contains(openid)) {
                     flag = true;
                     if (i == waitQueue.length - 1) {
-                        waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"}";
+                        waitQueue[i] = waitQueue[i].substring(0, waitQueue[i].length() - 1) + ",\"state\":\"-1\"}";
                     } else {
-                        waitQueue[i] = waitQueue[i].substring(0,waitQueue[i].length() - 1) + ",\"state\":\"-1\"};";
+                        waitQueue[i] = waitQueue[i].substring(0, waitQueue[i].length() - 1) + ",\"state\":\"-1\"};";
                     }
                 } else {
                     if (i != waitQueue.length - 1) {
@@ -421,9 +422,9 @@ public class UserServiceImpl implements UserService {
 
             if (flag) {
                 if ("前端".equals(direction)) {
-                    redisUtil.set("foreQueue",newQueue.toString());
+                    redisUtil.set("foreQueue", newQueue.toString());
                 } else {
-                    redisUtil.set("backstageQueue",newQueue.toString());
+                    redisUtil.set("backstageQueue", newQueue.toString());
                 }
                 result = "取消排队成功！";
             } else {
@@ -432,6 +433,45 @@ public class UserServiceImpl implements UserService {
         }
 
         return result;
+    }
+
+
+    @Override
+    public Map<String, String> checkSign(Sign sign) {
+        String pattern1 = "[\u4e00-\u9fa5]+";    // 限制只能填写中文
+
+        Map<String,String> checkMap = new HashMap();
+
+        if (!Pattern.matches(pattern1,sign.getName()) || sign.getName().getBytes().length > 30){
+            checkMap.put("nameError","请填写长度不超过10个的中文字符");
+        }
+        if (!Pattern.matches(pattern1,sign.getCollege()) || sign.getCollege().getBytes().length > 30){
+            checkMap.put("collegeError","请以中文填写学院名");
+        }
+        if (!Pattern.matches(pattern1,sign.getMajor()) || sign.getMajor().getBytes().length > 30){
+            checkMap.put("majorError","请以中文填写专业名");
+        }
+
+        String patternPhone = "[1][3578]\\d{9}";
+        if (!Pattern.matches(patternPhone,sign.getPhoneNum()) ){
+            checkMap.put("phoneError","请填写合法手机号码");
+        }
+
+        String patternSno = "[3][12][2][0][0-9]{6}";
+        if (!Pattern.matches(patternSno,sign.getSno()) ){
+            checkMap.put("snoError","请正确填写学号");
+        }
+
+        String patternQQ = "[1-9][0-9]{4,14}";
+        if (!Pattern.matches(patternQQ,sign.getQq()) ){
+            checkMap.put("qqError","请正确填写qq号");
+        }
+
+        if(sign.getIntroduce().getBytes().length > 900){
+            checkMap.put("introduceError","自我介绍控制在300字之内");
+        }
+
+        return  checkMap;
     }
 
 }

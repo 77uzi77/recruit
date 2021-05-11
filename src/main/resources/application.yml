@@ -25,7 +25,7 @@ spring:
         prefetch: 1
 
 
-  #    publisher-confirm-type: correlated
+#    publisher-confirm-type: correlated
 #    publisher-returns: true
 
   redis:
@@ -47,4 +47,3 @@ logging:
     path: /root/myLog/recruit
   level:
     com.yidong.recurit.mapper: debug
-
