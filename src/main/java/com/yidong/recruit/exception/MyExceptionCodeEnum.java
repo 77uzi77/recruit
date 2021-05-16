@@ -20,7 +20,16 @@ public enum MyExceptionCodeEnum implements MyExceptionCode{
     PARAM_NULL("500","传参为空"),
 
     //token的异常
-    TOKEN_INCORRECT("-1","校验失败，返回登录");
+    TOKEN_INCORRECT("-1","校验失败，返回登录"),
+
+    // 报名信息格式异常
+    NAME_INCORRECT("-1","请填写长度不超过10个的中文字符"),
+    COLLEGE_INCORRECT("-1","请以中文填写学院名"),
+    MAJOR_INCORRECT("-1","请以中文填写专业名"),
+    PHONE_INCORRECT("-1","请填写合法手机号码"),
+    SNO_INCORRECT("-1","请填写合法手机号码"),
+    QQ_INCORRECT("-1","请正确填写qq号"),
+    INTRODUCE_INCORRECT("-1","自我介绍控制在300字之内");
 
 
     private final String code;

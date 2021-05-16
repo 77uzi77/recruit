@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public interface UserService {
 
-   // void addOne(Sign sign);
+  //  void addOne(Sign sign);
     Map<String, String> addOne(Sign sign);
 
     String getStatus(String openid);
