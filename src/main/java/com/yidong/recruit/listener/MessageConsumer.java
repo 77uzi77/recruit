@@ -1,7 +1,6 @@
 package com.yidong.recruit.listener;
 
 import com.rabbitmq.client.Channel;
-import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.LockSupport;
 

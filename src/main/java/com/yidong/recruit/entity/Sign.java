@@ -59,4 +59,11 @@ public class Sign {
 
     @ApiModelProperty(value = "状态",hidden = true)
     private String status;
+
+    @ApiModelProperty("开始面试时间")
+    private String startTime;
+
+    @ApiModelProperty("结束面试时间")
+    private String endTime;
+
 }

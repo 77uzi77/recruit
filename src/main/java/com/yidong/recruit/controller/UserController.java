@@ -2,8 +2,8 @@ package com.yidong.recruit.controller;
 
 import com.yidong.recruit.entity.ResultBean;
 import com.yidong.recruit.entity.Sign;
+import com.yidong.recruit.entity.vo.OrderTime;
 import com.yidong.recruit.service.UserService;
-import com.yidong.recruit.service.impl.UserServiceImpl;
 import com.yidong.recruit.util.AccessTokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -107,14 +107,18 @@ public class UserController {
         return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
     }
 
+    @PostMapping("orderTime")
+    @ApiOperation("预约面试")
+    public ResultBean<String> orderTime(@RequestBody OrderTime time) {
+        String message = userService.orderTime(time);
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,message);
+    }
 
-/*    @PostMapping("checkSign")
-    @ApiOperation("检查报名信息格式")
-    public ResultBean<Map<String,String>> checkSign(@RequestBody Sign sign){
-
-        Map<String,String> checkMap = userService.checkSign(sign);
-        return new ResultBean<>(ResultBean.SUCCESS_CODE,checkMap);
-
-    }*/
+    @GetMapping("getTime/{openid}")
+    @ApiOperation("获得用户预约时间")
+    public ResultBean<String[]> getTime(@PathVariable String openid) {
+        String[] time = userService.getTime(openid);
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,time);
+    }
 
 }

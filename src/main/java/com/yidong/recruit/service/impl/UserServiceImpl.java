@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.yidong.recruit.entity.Message;
 import com.yidong.recruit.entity.Sign;
 import com.yidong.recruit.entity.TemplateData;
+import com.yidong.recruit.entity.vo.OrderTime;
 import com.yidong.recruit.listener.MessageConsumer;
 import com.yidong.recruit.mapper.UserMapper;
 import com.yidong.recruit.service.UserService;
@@ -248,6 +249,13 @@ public class UserServiceImpl implements UserService {
         log.info("service成功修改用户{}状态为2", openid);
     }
 
+    /**
+     * @param openid
+     * @return String
+     * @author ly
+     * @date 2021/5/16
+     *  判断用户是否已报名
+     */
     @Override
     public String ifHadSigned(String openid) {
         // 通过 openId 判断用户 是否 报名过
@@ -369,6 +377,10 @@ public class UserServiceImpl implements UserService {
         Example example = new Example(Sign.class);
         Example.Criteria criteria = example.createCriteria();
         if (sign != null) {
+            // openid
+            if (StringUtils.hasText(sign.getOpenid())) {
+                criteria.andEqualTo("openid",sign.getOpenid());
+            }
             // 方向
             if (StringUtils.hasText(sign.getDirection())) {
                 criteria.andEqualTo("direction", sign.getDirection());
@@ -381,6 +393,13 @@ public class UserServiceImpl implements UserService {
         return example;
     }
 
+    /**
+     * @param openid
+     * @return String
+     * @author ly
+     * @date 2021/5/16
+     * 推送消息
+     */
     @Override
     public String pushMessage(String openid) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
@@ -422,24 +441,72 @@ public class UserServiceImpl implements UserService {
         return responseEntity.getBody();
     }
 
+    /**
+     * @param time
+     * @return String
+     * @author lzc
+     * @date 2021/5/16
+     * 预约面试时间
+     */
+    @Override
+    public String orderTime(OrderTime time) {
+        Sign one = new Sign();
+        one.setOpenid(time.getOpenid());
+        one.setStartTime(time.getStartTime());
+        one.setEndTime(time.getEndTime());
 
+        Example example = new Example(Sign.class);
+        example.createCriteria().andEqualTo("openid", time.getOpenid());
+
+        userMapper.updateByExampleSelective(one, example);
+
+        return "预约成功！";
+    }
+
+    /**
+     * @param openid
+     * @return String
+     * @author lzc
+     * @date 2021/5/16
+     *  得到面试时间
+     */
+    @Override
+    public String[] getTime(String openid) {
+        Sign one = new Sign();
+        one.setOpenid(openid);
+
+        Sign sign = userMapper.selectOne(one);
+
+        return new String[]{sign.getStartTime(),sign.getEndTime()};
+    }
+
+
+    /**
+     * @param openid
+     * @return String
+     * @author lzc
+     * @date 2021/5/16
+     *  取消排队
+     */
     @Override
     public String cancelWait(String openid) {
-        // 判断用户是否在 队列中的 计数器
-
+        // 判断用户是否已排队的 标识
         boolean flag = false;
         String result;
 
+        // 通过openid 查找用户的 方向
         Sign sign = new Sign();
         sign.setOpenid(openid);
         Sign user = userMapper.selectOne(sign);
         String direction = user.getDirection();
 
+        // 根据 用户方向 得到 等待队列
         String[] waitQueue = getWaitQueue(direction);
 
         if (waitQueue == null) {
             result = "取消排队失败！";
         } else {
+            // 如果 用户 在等待 队列 中，则拼接 取消排队标识
             StringBuilder newQueue = new StringBuilder();
             for (int i = 0; i < waitQueue.length; i++) {
                 if (waitQueue[i].contains(openid)) {
@@ -471,44 +538,5 @@ public class UserServiceImpl implements UserService {
 
         return result;
     }
-
-
-  /*  @Override
-    public Map<String, String> checkSign(Sign sign) {
-        String pattern1 = "[\u4e00-\u9fa5]+";    // 限制只能填写中文
-
-        Map<String,String> checkMap = new HashMap();
-
-        if (!Pattern.matches(pattern1,sign.getName()) || sign.getName().getBytes().length > 30){
-            checkMap.put("nameError","请填写长度不超过10个的中文字符");
-        }
-        if (!Pattern.matches(pattern1,sign.getCollege()) || sign.getCollege().getBytes().length > 30){
-            checkMap.put("collegeError","请以中文填写学院名");
-        }
-        if (!Pattern.matches(pattern1,sign.getMajor()) || sign.getMajor().getBytes().length > 30){
-            checkMap.put("majorError","请以中文填写专业名");
-        }
-
-        String patternPhone = "[1][3578]\\d{9}";
-        if (!Pattern.matches(patternPhone,sign.getPhoneNum()) ){
-            checkMap.put("phoneError","请填写合法手机号码");
-        }
-
-        String patternSno = "[3][12][2][0][0-9]{6}";
-        if (!Pattern.matches(patternSno,sign.getSno()) ){
-            checkMap.put("snoError","请正确填写学号");
-        }
-
-        String patternQQ = "[1-9][0-9]{4,14}";
-        if (!Pattern.matches(patternQQ,sign.getQq()) ){
-            checkMap.put("qqError","请正确填写qq号");
-        }
-
-        if(sign.getIntroduce().getBytes().length > 900){
-            checkMap.put("introduceError","自我介绍控制在300字之内");
-        }
-
-        return  checkMap;
-    }*/
 
 }
