@@ -52,21 +52,62 @@ public class UserServiceImpl implements UserService {
      * 报名
      */
     @Override
-    public void addOne(Sign one) {
-        // 通过 openId 判断用户 是否 报名过
-        Sign checkSign = new Sign();
-        checkSign.setOpenid(one.getOpenid());
-        Sign checkOne = userMapper.selectOne(checkSign);
-        // 更新状态
-        one.setStatus("1");
-        // 报名过则修改
-        if (checkOne != null) {
-            one.setId(checkOne.getId());
-            userMapper.updateByPrimaryKeySelective(one);
-            // 没报名则新增
-        } else {
-            userMapper.insertSelective(one);
+    public Map<String, String> addOne(Sign one) {
+
+        // 检查报名信息填写格式
+        String pattern1 = "[\u4e00-\u9fa5]+";    // 限制只能填写中文
+
+        Map<String,String> checkMap = new HashMap();
+
+        if (!Pattern.matches(pattern1,one.getName()) || one.getName().getBytes().length > 30){
+            checkMap.put("nameError","请填写长度不超过10个的中文字符");
         }
+        if (!Pattern.matches(pattern1,one.getCollege()) || one.getCollege().getBytes().length > 30){
+            checkMap.put("collegeError","请以中文填写学院名");
+        }
+        if (!Pattern.matches(pattern1,one.getMajor()) || one.getMajor().getBytes().length > 30){
+            checkMap.put("majorError","请以中文填写专业名");
+        }
+
+        String patternPhone = "[1][3578]\\d{9}";
+        if (!Pattern.matches(patternPhone,one.getPhoneNum()) ){
+            checkMap.put("phoneError","请填写合法手机号码");
+        }
+
+        String patternSno = "[3][12][2][0][0-9]{6}";
+        if (!Pattern.matches(patternSno,one.getSno()) ){
+            checkMap.put("snoError","请正确填写学号");
+        }
+
+        String patternQQ = "[1-9][0-9]{4,14}";
+        if (!Pattern.matches(patternQQ,one.getQq()) ){
+            checkMap.put("qqError","请正确填写qq号");
+        }
+
+        if(one.getIntroduce().getBytes().length > 900){
+            checkMap.put("introduceError","自我介绍控制在300字之内");
+        }
+
+
+        if(checkMap.isEmpty()) {
+            // 通过 openId 判断用户 是否 报名过
+            Sign checkSign = new Sign();
+            checkSign.setOpenid(one.getOpenid());
+            Sign checkOne = userMapper.selectOne(checkSign);
+            // 更新状态
+            one.setStatus("1");
+            // 报名过则修改
+            if (checkOne != null) {
+                one.setId(checkOne.getId());
+                userMapper.updateByPrimaryKeySelective(one);
+                checkMap.put("signResult", "重报成功！");
+                // 没报名则新增
+            } else {
+                userMapper.insertSelective(one);
+                checkMap.put("signResult", "报名成功！");
+            }
+        }
+        return  checkMap;
     }
 
 
@@ -432,7 +473,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    @Override
+  /*  @Override
     public Map<String, String> checkSign(Sign sign) {
         String pattern1 = "[\u4e00-\u9fa5]+";    // 限制只能填写中文
 
@@ -468,6 +509,6 @@ public class UserServiceImpl implements UserService {
         }
 
         return  checkMap;
-    }
+    }*/
 
 }

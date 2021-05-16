@@ -15,7 +15,8 @@ import java.util.Map;
  */
 public interface UserService {
 
-    void addOne(Sign sign);
+   // void addOne(Sign sign);
+    Map<String, String> addOne(Sign sign);
 
     String getStatus(String openid);
 
@@ -43,5 +44,5 @@ public interface UserService {
 
     String pushMessage(String openid) throws Exception;
 
-    Map<String, String> checkSign(Sign sign);
+ //   Map<String, String> checkSign(Sign sign);
 }

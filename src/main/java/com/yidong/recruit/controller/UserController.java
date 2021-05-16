@@ -46,9 +46,12 @@ public class UserController {
      */
     @PostMapping("sign")
     @ApiOperation("报名")
-    public ResultBean<String> sign(@RequestBody Sign sign) {
+    public ResultBean<Map<String,String>> sign(@RequestBody Sign sign) {
+        Map<String,String> checkMap = userService.addOne(sign);
+
         userService.addOne(sign);
-        return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
+    //    return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,checkMap);
     }
 
     @GetMapping("getStatus/{openid}")
@@ -105,13 +108,13 @@ public class UserController {
     }
 
 
-    @PostMapping("checkSign")
+/*    @PostMapping("checkSign")
     @ApiOperation("检查报名信息格式")
     public ResultBean<Map<String,String>> checkSign(@RequestBody Sign sign){
 
         Map<String,String> checkMap = userService.checkSign(sign);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,checkMap);
 
-    }
+    }*/
 
 }
