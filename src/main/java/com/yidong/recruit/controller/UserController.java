@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -46,12 +47,15 @@ public class UserController {
      */
     @PostMapping("sign")
     @ApiOperation("报名")
-    public ResultBean<Map<String,String>> sign(@RequestBody Sign sign) {
+    public ResultBean/*<String>*/<Map<String,String>> sign(@RequestBody Sign sign) {
         Map<String,String> checkMap = userService.addOne(sign);
+        Map<String,String> map = new HashMap<>();
+        map.put("data","报名成功！");
 
-        userService.addOne(sign);
-    //    return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
-        return new ResultBean<>(ResultBean.SUCCESS_CODE,checkMap);
+     //   userService.addOne(sign);
+     //   return new ResultBean<>(ResultBean.SUCCESS_CODE,"报名成功！");
+        if(checkMap.isEmpty()) return new ResultBean<>(ResultBean.SUCCESS_CODE,map);
+        else return new ResultBean<>(ResultBean.INCCORECT_CODE,checkMap);
     }
 
     @GetMapping("getStatus/{openid}")
@@ -66,7 +70,7 @@ public class UserController {
     public ResultBean<String> wait(@PathVariable String openid) {
         String message = userService.wait(openid);
 
-        return new ResultBean<>(ResultBean.SUCCESS_CODE, message);
+        return new ResultBean<>(ResultBean.  SUCCESS_CODE, message);
     }
 
     /**

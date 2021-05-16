@@ -26,6 +26,8 @@ public class ResultBean<T> implements Serializable {
     public static final String SUCCESS_CODE = "1";
     // 发生未知错误的状态码
     public static final String UNSPECIFIED_CODE = "500";
+    public static final String INCCORECT_CODE = "-1";
+
 
     @ApiModelProperty("提示信息")
     private String message = "success";

@@ -59,38 +59,55 @@ public class UserServiceImpl implements UserService {
         String pattern1 = "[\u4e00-\u9fa5]+";    // 限制只能填写中文
 
         Map<String,String> checkMap = new HashMap();
+        // true：表示报名格式正确
+        //boolean flag = true;
 
         if (!Pattern.matches(pattern1,one.getName()) || one.getName().getBytes().length > 30){
-            checkMap.put("nameError","请填写长度不超过10个的中文字符");
+             checkMap.put("nameError","请填写长度不超过10个的中文字符");
+            /*flag = false;
+            throw new MyException("请填写长度不超过10个的中文字符");*/
         }
         if (!Pattern.matches(pattern1,one.getCollege()) || one.getCollege().getBytes().length > 30){
             checkMap.put("collegeError","请以中文填写学院名");
+            /*flag = false;
+            throw new MyException("请以中文填写学院名");*/
         }
         if (!Pattern.matches(pattern1,one.getMajor()) || one.getMajor().getBytes().length > 30){
             checkMap.put("majorError","请以中文填写专业名");
+            /*flag = false;
+            throw new MyException("请以中文填写专业名");*/
         }
 
-        String patternPhone = "[1][3578]\\d{9}";
+      //  String patternPhone = "[1][3578]\\d{9}";
+        String patternPhone = "^((13[0-9])|(14[5-9])|(15([0-3]|[5-9]))|(16[6-7])|(17[1-8])|(18[0-9])|(19[1|3])|(19[5|6])|(19[8|9]))\\d{8}$";
         if (!Pattern.matches(patternPhone,one.getPhoneNum()) ){
             checkMap.put("phoneError","请填写合法手机号码");
+           /* flag = false;
+            throw new MyException("请填写合法手机号码");*/
         }
 
         String patternSno = "[3][12][2][0][0-9]{6}";
         if (!Pattern.matches(patternSno,one.getSno()) ){
             checkMap.put("snoError","请正确填写学号");
+            /*flag = false;
+            throw new MyException("请正确填写学号");*/
         }
 
         String patternQQ = "[1-9][0-9]{4,14}";
         if (!Pattern.matches(patternQQ,one.getQq()) ){
-            checkMap.put("qqError","请正确填写qq号");
+             checkMap.put("qqError","请正确填写qq号");
+            /*flag = false;
+            throw new MyException("请正确填写qq号");*/
         }
 
         if(one.getIntroduce().getBytes().length > 900){
             checkMap.put("introduceError","自我介绍控制在300字之内");
+           /* flag = false;
+            throw new MyException("自我介绍控制在300字之内");*/
         }
 
 
-        if(checkMap.isEmpty()) {
+        if(checkMap.isEmpty() /*flag*/) {
             // 通过 openId 判断用户 是否 报名过
             Sign checkSign = new Sign();
             checkSign.setOpenid(one.getOpenid());
@@ -101,11 +118,11 @@ public class UserServiceImpl implements UserService {
             if (checkOne != null) {
                 one.setId(checkOne.getId());
                 userMapper.updateByPrimaryKeySelective(one);
-                checkMap.put("signResult", "重报成功！");
+             //   checkMap.put("signResult", "重报成功！");
                 // 没报名则新增
             } else {
                 userMapper.insertSelective(one);
-                checkMap.put("signResult", "报名成功！");
+             //   checkMap.put("signResult", "报名成功！");
             }
         }
         return  checkMap;
