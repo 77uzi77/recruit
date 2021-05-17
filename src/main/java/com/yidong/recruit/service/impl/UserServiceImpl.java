@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
 
         String patternSno = "[3][12][2][0][0-9]{6}";
         if (!Pattern.matches(patternSno,one.getSno()) ){
-            checkMap.put("snoError","请正确填写学号");
+            checkMap.put("snoError","请正确填写学号,仅限20级报名");
             /*flag = false;
             throw new MyException("请正确填写学号");*/
         }
