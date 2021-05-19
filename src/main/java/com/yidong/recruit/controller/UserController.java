@@ -6,6 +6,7 @@ import com.yidong.recruit.entity.vo.OrderTime;
 import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.AccessTokenUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,9 +121,16 @@ public class UserController {
 
     @GetMapping("getTime/{openid}")
     @ApiOperation("获得用户预约时间")
-    public ResultBean<String[]> getTime(@PathVariable String openid) {
-        String[] time = userService.getTime(openid);
+    public ResultBean<String> getTime(@PathVariable String openid) {
+        String time = userService.getTime(openid);
         return new ResultBean<>(ResultBean.SUCCESS_CODE,time);
+    }
+
+    @GetMapping("getOrderCount/{date}/{openid}")
+    @ApiOperation("获得该日期已预约人数")
+    public ResultBean<Integer> getOrderCount(@PathVariable String date,@PathVariable String openid) {
+        Integer count = userService.getOrderCount(date,openid);
+        return new ResultBean<>(ResultBean.SUCCESS_CODE,count);
     }
 
 }

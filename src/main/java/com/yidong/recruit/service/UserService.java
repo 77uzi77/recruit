@@ -134,7 +134,7 @@ public interface UserService {
      * @date 2021/5/16
      *  得到面试时间
      */
-    String[] getTime(String openid);
+    String getTime(String openid);
 
-
+    Integer getOrderCount(String date,String openid);
 }

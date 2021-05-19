@@ -67,7 +67,7 @@ public class MessageConsumer {
 //            System.out.println("处理消息成功！");
                 log.info("处理消息成功！");
 
-                channel.basicAck(deliveryTag, false); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
+                channel.basicAck(deliveryTag, true); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
             } else {
                 log.info("用户取消排队....");
                 channel.basicReject(deliveryTag, false);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝
@@ -112,7 +112,7 @@ public class MessageConsumer {
 //            System.out.println("处理消息成功！");
                 log.info("处理消息成功！");
 
-                channel.basicAck(deliveryTag, false); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
+                channel.basicAck(deliveryTag, true); //第二个参数，手动确认可以被批处理，当该参数为 true 时，则可以一次性确认 delivery_tag 小于等于传入值的所有消息
             } else {
                 log.info("用户取消排队....");
                 channel.basicReject(deliveryTag, false);//第二个参数，true会重新放回队列，所以需要自己根据业务逻辑判断什么时候使用拒绝

@@ -16,10 +16,12 @@ public class OrderTime {
     @ApiModelProperty("用户标识id")
     private String openid;
 
-    @ApiModelProperty("开始面试时间")
-    private String startTime;
-
-    @ApiModelProperty("结束面试时间")
-    private String endTime;
+//    @ApiModelProperty("开始面试时间")
+//    private String startTime;
+//
+//    @ApiModelProperty("结束面试时间")
+//    private String endTime;
+    @ApiModelProperty("预约日期")
+    private String date;
 
 }

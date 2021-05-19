@@ -11,6 +11,7 @@ import com.yidong.recruit.service.UserService;
 import com.yidong.recruit.util.AccessTokenUtil;
 import com.yidong.recruit.util.RedisUtil;
 import com.yidong.recruit.util.TimeUtil;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -467,15 +468,29 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public String orderTime(OrderTime time) {
-        Sign one = new Sign();
-        one.setOpenid(time.getOpenid());
-        one.setStartTime(time.getStartTime());
-        one.setEndTime(time.getEndTime());
 
+        // 通过openid获取用户方向
+        Sign user = new Sign();
+        user.setOpenid(time.getOpenid());
+//        Sign one = userMapper.selectOne(user);
+
+        // 如果用户已预约，则将 其 之前预约的日期 的预约人数 减一
+//        if (StringUtils.hasText(one.getDate())) {
+//            redisUtil.incr(one.getDate() + ":" + one.getDirection(), -1);
+//        }
+        // 增加 该日期 该方向 预约的人数
+//        String key = time.getDate() + ":" + one.getDirection();
+//        if (redisUtil.get(key) != null) {
+//            redisUtil.incr(key,1);
+//        } else {
+//            redisUtil.set(key,1);
+//        }
+
+        // 保存用户 预约 日期
+        user.setDate(time.getDate());
         Example example = new Example(Sign.class);
         example.createCriteria().andEqualTo("openid", time.getOpenid());
-
-        userMapper.updateByExampleSelective(one, example);
+        userMapper.updateByExampleSelective(user, example);
 
         return "预约成功！";
     }
@@ -488,13 +503,35 @@ public class UserServiceImpl implements UserService {
      *  得到面试时间
      */
     @Override
-    public String[] getTime(String openid) {
+    public String getTime(String openid) {
         Sign one = new Sign();
         one.setOpenid(openid);
 
         Sign sign = userMapper.selectOne(one);
 
-        return new String[]{sign.getStartTime(),sign.getEndTime()};
+        return sign.getDate();
+    }
+
+    @Override
+    public Integer getOrderCount(String date, String openid) {
+        // 通过openid获取用户方向
+        Sign user = new Sign();
+        user.setOpenid(openid);
+        Sign one = userMapper.selectOne(user);
+
+        Sign count = new Sign();
+        count.setDirection(one.getDirection());
+        count.setDate(date);
+
+        // 根据 日期 + 方向 查找 已预约人数
+//        String key = date + ":" + one.getDirection();
+//        if (redisUtil.get(key) != null) {
+//            return redisUtil.get(key) + "";
+//        } else {
+//            return "0";
+//        }
+
+        return userMapper.selectCount(count);
     }
 
 
