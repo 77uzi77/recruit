@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
             throw new MyException("请填写合法手机号码");*/
         }
 
-        String patternSno = "[3][12][2][0][0-9]{6}";
+        String patternSno = "[3][12][2][1][0-9]{6}";
         if (!Pattern.matches(patternSno,one.getSno()) ){
             checkMap.put("snoError","请正确填写学号");
             /*flag = false;
